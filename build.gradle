@@ -1,0 +1,1181 @@
+#!/usr/bin/env groovy
+/* Build script for FIDATA Infrastructure
+   Copyright © 2015-2017  Basil Peace
+
+   This file is part of FIDATA Infrastructure.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+   implied.
+   See the License for the specific language governing permissions and
+   limitations under the License. */
+
+buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+  repositories {
+    maven {
+      url 'https://fidata.jfrog.io/fidata/plugins-snapshot'
+      credentials {
+        username = artifactoryUser
+        password = artifactoryPassword
+      }
+    }
+  }
+  dependencies {
+    classpath 'gradle.plugin.fidata.org:gradle-packer-plugin:2.4.0'
+    classpath 'org.apache.commons:commons-exec:1.3'
+    classpath 'com.jcraft:jsch:0.1.54'
+  }
+}
+
+plugins {
+  id 'com.jfrog.artifactory' version '4.4.14'
+  id 'com.github.jlouns.cpe' version '0.5.0'
+  id 'cz.malohlava' version '1.0.1'
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'codenarc'
+apply plugin: 'org.fidata.packer'
+
+artifactory {
+  contextUrl = 'http://fidata.jfrog.io/fidata'
+  resolve {
+    repository {
+      repoKey = 'libs-snapshot'
+      username = artifactoryUser
+      password = artifactoryPassword
+      maven = true
+    }
+  }
+}
+
+import org.gradle.internal.os.OperatingSystem
+import java.util.regex.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import org.apache.commons.exec.*
+import com.jcraft.jsch.*
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '4.0'
+}
+
+LogLevel logLevel = (logging.level ?: gradle.startParameter.logLevel)
+ShowStacktrace showStacktrace = gradle.startParameter.showStacktrace
+
+ext.with {
+  bundleExecutable = OperatingSystem.current().windows ? 'bundle.bat' : 'bundle'
+  bundleLogLevelArgs = [].with {
+    if (logLevel <= LogLevel.INFO) {
+      push '--verbose'
+    }
+    it
+  }
+  gemLogLevelArgs = [].with {
+    switch (logLevel) {
+      case { it <= LogLevel.INFO }: push '--verbose'
+      case { it <= LogLevel.DEBUG }: push '--debug'
+    }
+    it
+  }
+  gemStacktraceArgs = [].with {
+    if (showStacktrace >= ShowStacktrace.ALWAYS) {
+      push '--backtrace'
+    }
+    it
+  }
+  rubyLogLevelArgs = [].with {
+    switch (logLevel) {
+      case { it <= LogLevel.DEBUG }: push '--debug'
+      case { it <= LogLevel.INFO }: push '-W2'; break
+      case { it >= LogLevel.QUIET }: push '-W0'; break
+    }
+    it
+  }
+  berksLogLevelArgs = [].with {
+    switch (logLevel) {
+      case { it <= LogLevel.DEBUG }: push '--debug'; break
+      case { it >= LogLevel.QUIET }: push '--quiet'; break
+    }
+    it
+  }
+  knifeLogLevelArgs = [].with {
+    switch (logLevel) {
+      case { it <= LogLevel.INFO }: push '--verbose'
+      case { it <= LogLevel.DEBUG }: push '--verbose'
+    }
+    it
+  }
+  String kitchenLogLevel = {
+    switch (logLevel) {
+      case { it <= LogLevel.DEBUG }: 'debug'; break
+      case { it <= LogLevel.LIFECYCLE }: 'info'; break
+      case { it <= LogLevel.WARN }: 'warn'; break
+      case { it <= LogLevel.ERROR }: 'error'; break
+      default: 'fatal'
+    }
+  }()
+  kitchenLogLevelArgs = ["--log-level=$kitchenLogLevel"]
+  String terraformLogLevel = {
+    if (gradle.startParameter.showStacktrace >= ShowStacktrace.ALWAYS) {
+      return 'TRACE'
+    }
+    switch (logLevel) {
+      case { it <= LogLevel.DEBUG }: 'DEBUG'; break
+      case { it <= LogLevel.INFO }: 'INFO'; break
+      case { it <= LogLevel.WARN }: 'WARN'; break
+      case { it <= LogLevel.ERROR }: 'ERROR'; break
+    }
+  }()
+  terraformEnvironment = [:]
+  if (terraformLogLevel != null) {
+    terraformEnvironment['TF_LOG'] = terraformLogLevel
+  }
+
+  consoleExecutable = OperatingSystem.current().windows ? 'cmd' : '/usr/bin/x-terminal-emulator'
+  consoleArgs = OperatingSystem.current().windows ? ['/c', 'start', 'cmd', '/k']: ['--disable-factory', '-e']
+}
+
+visteg {
+  enabled        = (logging.level ?: gradle.startParameter.logLevel) <= LogLevel.INFO
+  colouredNodes  = true
+  colouredEdges  = true
+  destination    = 'build/reports/visteg.dot'
+  exporter       = 'dot'
+  colorscheme    = 'paired12'
+  nodeShape      = 'box'
+  startNodeShape = 'hexagon'
+  endNodeShape   = 'doubleoctagon'
+}
+
+class GemVersion {
+  String name
+  String version
+  String nativeExtensions
+}
+Map<String, GemVersion> parseGemVersions(output) {
+  final Pattern GEM_VERSION_PATTERN = ~/(?ms)^(\S+) \((\S+)( (\S+))?\)$/
+  Matcher m = GEM_VERSION_PATTERN.matcher(output)
+  Map<String, GemVersion> res = [:]
+  while (m.find()) {
+    GemVersion gemVersion = new GemVersion(
+      name: m.group(1),
+      version: m.group(2),
+      nativeExtensions: m.group(4)
+    )
+    res[gemVersion.name] = gemVersion
+  }
+  res
+}
+
+if (!file('gems.locked').exists()) {
+  exec {
+    commandLine(
+      [
+        bundleExecutable, 'update'
+      ] +
+      bundleLogLevelArgs
+    )
+  }
+}
+
+new ByteArrayOutputStream().withStream { os ->
+  exec {
+    commandLine(
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs +
+      [
+        'gem', 'list',
+        '--local'
+      ] +
+      gemLogLevelArgs +
+      gemStacktraceArgs
+    )
+    standardOutput = os
+  }
+  ext.chefVersion = parseGemVersions(os.toString())['chef'].version
+}
+
+task('bundleDoctor', type: CrossPlatformExec) {
+  group 'Test'
+  inputs.file 'gems.rb'
+  outputs.upToDateWhen { false }
+  commandLine(
+    [
+      'bundle', 'doctor'
+    ] +
+    bundleLogLevelArgs
+  )
+}
+
+ext.with {
+  libDir = file('src/lib')
+  videocaptureDir = file('build/videocapture')
+  vboxOutputDir = file('build/vbox')
+  vagrantOutputDir = file('build/vagrant')
+  manifestOutputDir = file('build/manifest')
+  chefDir = file('src/chef')
+  berksfile = file("$chefDir/Berksfile")
+  berksfileLock = file("$chefDir/Berksfile.lock")
+  berksVendorDir = file('build/berks-cookbooks')
+  vagrantDir = file('src/vagrant')
+  terraformDir = file('src/terraform')
+  terraformOutputDir = file('build/terraform')
+  encryptedDataBagSecret = file(encryptedDataBagSecret)
+  keysDir = file('build/keys')
+  fidataChefSSHPrivateKey = file("$keysDir/fidata-chef")
+  fidataJenkinsSSHPrivateKey = file("$keysDir/fidata-jenkins")
+  kitchenSSHPrivateKey = file("$keysDir/kitchen")
+  chefIdPrivateKey = file(chefIdPrivateKey)
+
+  sshKeyType = KeyPair.RSA
+  sshKeySize = 4096
+  
+  kitchenEnvironment = [
+    'CHEF_VERSION': chefVersion,
+    'AWS_ACCESS_KEY_ID': awsAccessKey,
+    'AWS_SECRET_ACCESS_KEY': awsSecretKey,
+    'ATLAS_TOKEN': atlasToken,
+    'KITCHEN_SSH_KEY': kitchenSSHPrivateKey.absolutePath,
+    'ENCRYPTED_DATA_BAG_SECRET': encryptedDataBagSecret.absolutePath,
+  ]
+
+  Map terraformVariables = [
+    'lib_dir': libDir.absolutePath,
+    'keys_dir': keysDir.absolutePath,
+    'aws_access_key': awsAccessKey,
+    'aws_secret_key': awsSecretKey,
+    'atlas_token': atlasToken,
+    'cloudflare_email': cloudflareEmail,
+    'cloudflare_token': cloudflareToken,
+  ]
+  terraformVariablesForArgs = terraformVariables.collectMany { key, value -> ['-var', "$key=$value"] }
+
+  awsSecurityGroups = [
+    'default': null,
+    'SSH': null,
+    'HTTP_S': null,
+    'RDP': null,
+    'SMB': null,
+    'WinRM': null,
+  ]
+
+  jenkinsSlaves = [
+    'UbuntuServer16.04.2+amd64': [
+      'security_groups': ['SSH'] as Set<String>,
+      'type_data': [
+        'type': 'unix',
+        'root_сommand_prefix': ''
+      ],
+      'remote_admin': 'ubuntu',
+      'remote_fs': '/srv/jenkins',
+      'labels': ['ubuntu', 'amd64'] as Set<String>,
+      'mode': 'NORMAL',
+      'instance_cap': '2',
+    ]
+  ]
+
+  getAtlasArtifactMetadataFull = { name, type ->
+    new ByteArrayOutputStream().withStream { os ->
+      exec {
+        environment([
+          'ATLAS_TOKEN': atlasToken
+        ])
+        commandLine([
+          bundleExecutable, 'exec',
+          'ruby'
+        ] +
+        rubyLogLevelArgs +
+        [
+          '--',
+          "$libDir/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full.rb",
+          'get',
+          name, type
+        ])
+        standardOutput = os
+      }
+      new JsonSlurper().parseText(os.toString())
+    }
+  }
+  
+  terraformOutputs = [:].withDefault { [:] }
+
+  dataBags = [
+    'FIDATAChef': [:],
+    'FIDATAJenkins': [:],
+    'JenkinsGithubOAuth': [:],
+    'JenkinsEC2Cloud': [:],
+    'ReleaseCredentials': [:],
+  ]
+}
+
+task('createVideocaptureDir') {
+  doLast {
+    videocaptureDir.mkdirs()
+  }
+  outputs.upToDateWhen {
+    videocaptureDir.exists()
+  }
+}
+
+// BLOCKED: https://github.com/FIDATA/gradle-packer-plugin/issues/1 <>
+task('createManifestOutputDir') {
+  doLast {
+    manifestOutputDir.mkdirs()
+  }
+  outputs.upToDateWhen {
+    manifestOutputDir.exists()
+  }
+}
+
+class GenerateSSHKeyTask extends DefaultTask {
+  private final static JSch JSCH
+
+  private File privateKeyFile
+  private File publicKeyFile
+
+  @OutputFile
+  File getPrivateKeyFile() { privateKeyFile }
+  void setPrivateKeyFile(File privateKeyFile) {
+      this.privateKeyFile = privateKeyFile
+      this.publicKeyFile = project.file("${privateKeyFile}.pub")
+  }
+  @OutputFile
+  File getPublicKeyFile() { publicKeyFile }
+  
+  int keyType
+  int keySize
+  String email
+  
+  static {
+    JSCH = new JSch()
+  }
+  
+  @TaskAction
+  void generate() {
+    if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
+      KeyPair kpair = KeyPair.genKeyPair(jsch, keyType, keySize)
+      kpair.writePrivateKey(privateKeyFile.toString())
+      kpair.writePublicKey(publicKeyFile.toString(), email)
+      kpair.dispose()
+    }
+  }
+}
+
+task('generateSSHKey-FIDATAChef', type: GenerateSSHKeyTask) {
+  privateKeyFile = fidataChefSSHPrivateKey
+  keyType = sshKeyType
+  keySize = sshKeySize
+  email = fidataChefEmail
+}
+
+task('generateSSHKey-FIDATAJenkins', type: GenerateSSHKeyTask) {
+  privateKeyFile = fidataJenkinsSSHPrivateKey
+  keyType = sshKeyType
+  keySize = sshKeySize
+  email = fidataJenkinsEmail
+}
+
+task('generateSSHKey-Kitchen', type: GenerateSSHKeyTask) {
+  privateKeyFile = kitchenSSHPrivateKey
+  keyType = sshKeyType
+  keySize = sshKeySize
+  email = fidataKitchenEmail
+}
+
+task('terraformValidate-common', type: Exec) {
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  workingDir "$terraformDir/common"
+  environment << terraformEnvironment
+  commandLine(
+    [
+      'terraform', 'validate'
+    ]
+  )
+}
+
+task('terraformDestroy-common') {
+  mustRunAfter 'terraformValidate-common'
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  File stateFile = file("$terraformOutputDir/common.tfstate")
+  doLast {
+    exec {
+      workingDir "$terraformDir/common"
+      environment << terraformEnvironment
+      commandLine(
+        [
+          'terraform', 'destroy',
+          "-state=${stateFile.absolutePath}",
+          '-force',
+          '-lock=true'
+        ] +
+        terraformVariablesForArgs
+      )
+    }
+  }
+  outputs.file stateFile
+}
+
+task('terraformApply-common') {
+  group 'Build'
+  dependsOn 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins'
+  mustRunAfter 'terraformValidate-common', 'terraformDestroy-common'
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  inputs.file tasks['generateSSHKey-FIDATAChef'].publicKeyFile
+  inputs.file tasks['generateSSHKey-FIDATAJenkins'].publicKeyFile
+  File stateFile = file("$terraformOutputDir/common.tfstate")
+  doLast {
+    exec {
+      workingDir "$terraformDir/common"
+      environment << terraformEnvironment
+      commandLine(
+        [
+          'terraform', 'apply',
+          "-state=${stateFile.absolutePath}",
+          '-lock=true'
+        ] +
+        terraformVariablesForArgs
+      )
+    }
+  }
+  outputs.file stateFile
+}
+
+task('terraformOutput-common') {
+  dependsOn 'terraformApply-common'
+  mustRunAfter 'terraformValidate-common'
+  File stateFile = file("$terraformOutputDir/common.tfstate")
+  inputs.file stateFile
+  doLast {
+    new ByteArrayOutputStream().withStream { os ->
+      exec {
+        workingDir "$terraformDir/common"
+        environment << terraformEnvironment
+        commandLine([
+          'terraform', 'output',
+          "-state=${stateFile.absolutePath}",
+          '-json'
+        ])
+        standardOutput = os
+      }
+      terraformOutputs << new JsonSlurper().parseText(os.toString())
+    }
+    kitchenEnvironment << [
+      'AWS_SUBNET_ID': terraformOutputs['fidata_subnet_id']['value'],
+    ]
+    awsSecurityGroups << awsSecurityGroups.collectEntries { key, value ->
+      [(key): terraformOutputs["${key}_security_group_id"]['value']]
+    }
+    for (securityGroup in awsSecurityGroups) {
+      kitchenEnvironment["AWS_${securityGroup.key.toUpperCase()}_SG_ID"] = securityGroup.value
+    }
+    jenkinsSlaves.values().each { slave ->
+      slave['security_groups'] = slave['security_groups'].collect { awsSecurityGroups[it] } as Set<String>
+    }
+  }
+}
+
+packer {
+  customVariables = [
+    'chef_version': chefVersion,
+    'chef_dir': chefDir,
+    'berks_vendor_dir': berksVendorDir,
+    'videocapture_dir': videocaptureDir,
+    'vbox_output_dir': vboxOutputDir,
+    'vagrant_output_dir': vagrantOutputDir,
+    'manifest_output_dir': manifestOutputDir,
+    'aws_access_key': awsAccessKey,
+    'aws_secret_key': awsSecretKey,
+    'atlas_token': atlasToken,
+    'encrypted_data_bag_secret': encryptedDataBagSecret,
+  ]
+  // Kernel images
+  template 'src/packer/kernel_images/kernel-UbuntuServer16.04.2_amd64.json'
+
+  // Base images
+  template 'src/packer/base_images/UbuntuServer16.04.2_amd64.json'
+
+  // Instances
+  template 'src/packer/instances/JenkinsMaster.json'
+  template 'src/packer/instances/JenkinsSlaves.json'
+}
+
+tasks['build-kernel-UbuntuServer16.04.2_amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.2_amd64-vbox'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.2_amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer16.04.2_amd64-vbox'
+tasks['build-UbuntuServer16.04.2_amd64-amazon'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.2_amd64'].dependsOn 'createManifestOutputDir'
+
+task('clean-base') {
+  group 'Build'
+  dependsOn 'clean-UbuntuServer16.04.2_amd64'
+}
+
+task('clean') {
+  dependsOn 'clean-base', 'clean-JenkinsSlaves', 'clean-JenkinsMaster'
+}
+
+task('build-base-vbox') {
+  group 'Build'
+  dependsOn 'build-UbuntuServer16.04.2_amd64-vbox'
+}
+
+task('build-base-amazon') {
+  group 'Build'
+  dependsOn 'build-UbuntuServer16.04.2_amd64-amazon'
+}
+
+task('build-base') {
+  group 'Build'
+  dependsOn 'build-UbuntuServer16.04.2_amd64'
+}
+
+task('berksUpdate') {
+  mustRunAfter 'berksVerify'
+  inputs.file berksfile
+  doLast {
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          bundleExecutable, 'exec'
+        ] +
+        bundleLogLevelArgs +
+        [
+          'berks', berksfileLock.exists() ? 'update' : 'install'
+        ] +
+        berksLogLevelArgs
+      )
+    }
+  }
+  /* CAVEAT:
+   * To determine correctly whether the task is up-to-date we would
+   * have to parse Berksfile, detect inputs and outputs and also
+   * assume that remote dependencies are always up-to-date.
+   * Too hard to implement and error-prone, so we just assume that
+   * the task is always not up-to-date <> */
+  outputs.file berksfileLock
+  outputs.upToDateWhen { false }
+}
+
+task('berksVerify') {
+  inputs.file berksfile
+  doLast {
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          bundleExecutable, 'exec'
+        ] +
+        bundleLogLevelArgs +
+        [
+          'berks', 'verify'
+        ] +
+        berksLogLevelArgs
+      )
+    }
+  }
+}
+
+task('berksClean', type: Delete) {
+  delete berksVendorDir
+}
+
+task('berksVendor') {
+  dependsOn 'berksClean', 'berksUpdate'
+  mustRunAfter 'berksVerify'
+  inputs.file berksfileLock
+  doLast {
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          bundleExecutable, 'exec'
+        ] +
+        bundleLogLevelArgs +
+        [
+          'berks', 'vendor',
+          berksVendorDir.absolutePath
+        ] +
+        berksLogLevelArgs
+      )
+    }
+  }
+  outputs.dir berksVendorDir
+}
+
+task('kitchenTest-BuildToolkit', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'berksUpdate'
+  mustRunAfter 'build-base', 'build-base-amazon'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'test',
+      'BuildToolkit',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenConverge-BuildToolkit', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common'
+  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'converge',
+      'BuildToolkit',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenVerify-BuildToolkit', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'kitchenConverge-BuildToolkit'
+  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'verify',
+      'BuildToolkit',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenDestroy-BuildToolkit', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'destroy',
+      'BuildToolkit',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+tasks['build-JenkinsSlaves'].with {
+  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'berksVendor'
+  mustRunAfter 'build-base', 'build-base-amazon', 'kitchenTest-BuildToolkit', 'kitchenConverge-BuildToolkit'
+}
+
+task('generateRuntimeDataBag') {
+  dependsOn 'terraformOutput-common', 'generateSSHKey-FIDATAChef', 'generateSSHKey-FIDATAJenkins'
+  mustRunAfter 'build-JenkinsSlaves'
+  inputs.with {
+    file encryptedDataBagSecret
+    property 'FIDATAChefDataBag', {
+      dataBags['FIDATAChef'] << [
+        'username': fidataChefUsername,
+        'full_name': fidataChefFullName,
+        'email': fidataChefEmail,
+        'public_key': tasks['generateSSHKey-FIDATAChef'].publicKeyFile.text,
+        'private_key': tasks['generateSSHKey-FIDATAChef'].privateKeyFile.text,
+        'jenkins': [
+          'password': fidataChefJenkinsPassword,
+        ],
+      ]
+    }
+    property 'FIDATAJenkinsDataBag', {
+      dataBags['FIDATAJenkins'] << [
+        'username': fidataJenkinsUsername,
+        'full_name': fidataJenkinsFullName,
+        'email': fidataJenkinsEmail,
+        'public_key': tasks['generateSSHKey-FIDATAJenkins'].publicKeyFile.text,
+        'private_key': tasks['generateSSHKey-FIDATAJenkins'].privateKeyFile.text,
+        'yandex': [
+          'username': fidataJenkinsYandexUsername,
+          'password': fidataJenkinsYandexPassword,
+        ],
+        'github': [
+          'token': fidataJenkinsGithubToken,
+        ],
+        'artifactory': [
+          'api_key': fidataJenkinsArtifactoryAPIKey,
+        ],
+        'aws_iam': [
+          'access_key': terraformOutputs['fidata_jenkins_iam_access_key']['value'],
+          'secret_key': terraformOutputs['fidata_jenkins_iam_secret_key']['value'],
+        ],
+      ]      
+    }
+    property 'JenkinsGithubOAuthDataBag', {
+      dataBags['JenkinsGithubOAuth'] << [
+        'client_id': jenkinsGithubOAuthClientID,
+        'client_secret': jenkinsGithubOAuthClientSecret,
+      ]
+    }
+    property 'JenkinsEC2CloudDataBag', {
+      for (s in jenkinsSlaves) {
+        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.ami')['ami_id']
+      }
+      dataBags['JenkinsEC2Cloud'] << [
+        'region': 'eu-west-1',
+        'zone': 'eu-west-1c',
+        'subnet_id': terraformOutputs['fidata_subnet_id']['value'],
+        'slaves': jenkinsSlaves,
+      ]
+    }
+    property 'ReleaseCredentialsDataBag', {
+      dataBags['ReleaseCredentials'] << [
+        'gradle_plugins': [
+          'key': gradlePluginsKey,
+          'secret': gradlePluginsSecret,
+        ],
+        'chef_id': [
+          'private_key': chefIdPrivateKey.text,
+        ],
+        'chocolatey': [
+          'api_key': chocolateyAPIKey,
+        ],
+      ]
+    }
+  }
+
+  doLast {
+    for (dataBag in dataBags) {
+      exec {
+        workingDir chefDir
+        commandLine(
+          [
+            bundleExecutable, 'exec'
+          ] +
+          bundleLogLevelArgs +
+          [
+            'knife', 'solo', 'data', 'bag', 'create',
+            'runtime', dataBag.key,
+            '--secret-file', encryptedDataBagSecret,
+            '--json', JsonOutput.toJson(
+              ['id': dataBag.key] +
+              dataBag.value
+            ).replace('"', OperatingSystem.current().windows ? '\\"' : '"')
+          ] +
+          knifeLogLevelArgs
+        )
+      }
+    }
+  }
+  
+  for (dataBag in dataBags) {
+    outputs.file "$chefDir/data_bags/runtime/${dataBag.key}.json"
+  }
+}
+
+task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  mustRunAfter 'build-UbuntuServer16.04.2_amd64-vbox'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'kitchen', 'test',
+      'JenkinsMaster-vbox',
+      '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  mustRunAfter 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'kitchen', 'test',
+      'JenkinsMaster-amazon',
+      '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common', 'generateRuntimeDataBag'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.2_amd64-vbox'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'kitchen', 'converge',
+      'JenkinsMaster-vbox',
+      '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'kitchen', 'converge',
+      'JenkinsMaster-amazon',
+      '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenLogin-JenkinsMaster-vbox') {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  mustRunAfter 'kitchenConverge-JenkinsMaster-vbox'
+  doLast {
+    CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
+      consoleArgs +
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs + [
+        'kitchen', 'login',
+        'JenkinsMaster-vbox',
+        '--no-log-overwrite'
+      ] +
+      kitchenLogLevelArgs
+    ) as String[])
+    Executor executor = new DefaultExecutor()
+    executor.workingDirectory = chefDir
+    executor.execute(cmdLine, new HashMap(System.env) + kitchenEnvironment)
+  }
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenLogin-JenkinsMaster-amazon') {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  mustRunAfter 'kitchenConverge-JenkinsMaster-amazon'
+  doLast {
+    CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
+      consoleArgs +
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs + [
+        'kitchen', 'login',
+        'JenkinsMaster-amazon',
+        '--no-log-overwrite'
+      ] +
+      kitchenLogLevelArgs
+    ) as String[])
+    Executor executor = new DefaultExecutor()
+    executor.workingDirectory = chefDir
+    executor.execute(cmdLine, new HashMap(System.env) + kitchenEnvironment)
+  }
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenDestroy-JenkinsMaster-vbox', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'destroy',
+      'JenkinsMaster-vbox',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'destroy',
+      'JenkinsMaster-amazon',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+tasks['build-JenkinsMaster'].with {
+  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
+  mustRunAfter 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
+}
+
+task('terraformValidate-instances', type: Exec) {
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  workingDir "$terraformDir/instances"
+  environment << terraformEnvironment
+  commandLine(
+    [
+      'terraform', 'validate'
+    ]
+  )
+}
+
+task('terraformDestroy-instances') {
+  mustRunAfter 'terraformValidate-instances'
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  File stateFile = file("$terraformOutputDir/instances.tfstate")
+  doLast {
+    exec {
+      workingDir "$terraformDir/instances"
+      environment << terraformEnvironment
+      commandLine(
+        [
+          'terraform', 'destroy',
+          "-state=${stateFile.absolutePath}",
+          '-force',
+          '-lock=true'
+        ] +
+        terraformVariablesForArgs
+      )
+    }
+  }
+  outputs.file stateFile
+}
+
+task('terraformApply-instances') {
+  group 'Build'
+  mustRunAfter 'terraformValidate-instances', 'terraformDestroy-instances', 'build-JenkinsMaster'
+  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+  for (f in new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')) {
+    inputs.file f
+  }
+  File stateFile = file("$terraformOutputDir/instances.tfstate")
+  doLast {
+    exec {
+      workingDir "$terraformDir/instances"
+      environment << terraformEnvironment
+      commandLine(
+        [
+          'terraform', 'apply',
+          "-state=${stateFile.absolutePath}",
+          '-lock=true'
+        ] +
+        terraformVariablesForArgs
+      )
+    }
+  }
+  outputs.file stateFile
+  outputs.upToDateWhen { false }
+}
+
+task('codenarc', type: CodeNarc) {
+  group 'Test'
+  source 'Jenkinsfile'
+  source 'build.gradle'
+  for (f in new FileNameFinder().getFileNames(projectDir.toString(), '**/*.groovy')) {
+    source f
+  }
+  configFile = file('config/codenarc/codenarc.groovy')
+}
+
+task('kitchenDiagnose', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  outputs.upToDateWhen { false }
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'kitchen', 'diagnose',
+      '--no-instances', '--all'
+    ] +
+    kitchenLogLevelArgs
+  )
+}
+
+task('rubocop', type: CrossPlatformExec) {
+  group 'Test'
+  List sourceFiles = ['gems.rb', 'src/lib'] + new FileNameFinder().getFileNames(chefDir.toString(), '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
+  outputs.upToDateWhen { false }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'rubocop'
+    ] +
+    sourceFiles
+  )
+}
+
+task('foodcritic', type: CrossPlatformExec) {
+  group 'Test'
+  outputs.upToDateWhen { false }
+  workingDir chefDir
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'foodcritic',
+      '--cookbook-path', 'cookbooks', 'site-cookbooks',
+      '--environment-path', 'environments',
+      '--role-path', 'roles'
+    ]
+  )
+}
+
+task('cookstyle', type: CrossPlatformExec) {
+  group 'Test'
+  outputs.upToDateWhen { false }
+  workingDir chefDir
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs + [
+      'cookstyle'
+    ]
+  )
+}
+
+task('check-noSideEffects') {
+  group 'Test'
+  dependsOn 'codenarc', 'bundleDoctor', 'berksVerify', 'validate', 'rubocop', 'foodcritic', 'cookstyle', 'terraformValidate-common', 'terraformValidate-instances'
+}
+
+/* CAVEAT:
+ * kitchenDiagnose depends on terraformCommon-apply task
+ * So we treat it separately <> */
+task('check') {
+  group 'Test'
+  dependsOn 'check-noSideEffects', 'kitchenDiagnose'
+}
+
+task('deploy') {
+  group 'Build'
+  dependsOn 'terraformApply-instances'
+}
+
+task('inputsOutputs').doLast {
+  for (t in tasks) {
+    if (t.inputs.hasInputs) {
+      for (f in t.inputs.files) {
+        logger.lifecycle(sprintf('%s input:\t%s', [t.name, f.path]))
+      }
+    }
+    if (t.outputs.hasOutput) {
+      for (f in t.outputs.files) {
+        logger.lifecycle(sprintf('%s output:\t%s', [t.name, f.path]))
+      }
+    }
+  }
+}

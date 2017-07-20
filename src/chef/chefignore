@@ -1,0 +1,13 @@
+# Git
+.gitignore
+.gitkeep
+# GFM Viewer
+.*.md.html
+# Chef
+.chef
+# Berskshelf
+Berksfile.lock
+# Test Kitchen
+.kitchen*
+# Vagrant
+Vagrantfile

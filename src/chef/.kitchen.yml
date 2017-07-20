@@ -1,0 +1,101 @@
+<% require_relative '../lib/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full' %>platforms:
+  - name: UbuntuServer16.04.2+amd64-amazon
+    driver:
+      name: ec2
+      image_search:
+        name: UbuntuServer16.04.2-*
+        tag:architecture: amd64
+        owner-id: "880042334380"
+      region: eu-west-1
+      subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
+      aws_ssh_key_id: kitchen
+    transport:
+      username: ubuntu
+      ssh_key: <%= ENV['KITCHEN_SSH_KEY'] %>
+      no-host-key-verify: true
+      connection_timeout: 30
+      keepalive: false
+  - name: UbuntuServer16.04.2+amd64-vbox
+    driver:
+      name: vagrant
+      cachier: machine	
+      box: fidata/UbuntuServer16.04.2_amd64
+      box_url: fidata/UbuntuServer16.04.2_amd64
+      bov_version: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.2_amd64', 'vagrant.box')['version'] %>
+      box_check_update: true
+      username: ubuntu
+      password: ubuntu
+      provision: true
+      vagrantfiles:
+        - ./Vagrantfile.rb
+
+provisioner:
+  name: chef_solo
+  require_chef_omnibus: "<%= ENV['CHEF_VERSION'] %>"
+  data_bags_path: data_bags
+  encrypted_data_bag_secret_key_path: <%= ENV['ENCRYPTED_DATA_BAG_SECRET'] %>
+  environments_path: environments
+  roles_path: roles
+
+verifier:
+  name: inspec
+
+suites:
+  - name: BuildToolkit
+    includes:
+      - UbuntuServer16.04.2+amd64-amazon
+    driver:
+      instance_type: t2.medium
+      block_device_mappings:
+        - device_name: /dev/sda1
+          ebs:
+            delete_on_termination: true
+            volume_type: gp2
+            volume_size: 32
+      security_group_ids:
+        - <%= ENV['AWS_SSH_SG_ID'] %>
+    provisioner:
+      solo_rb:
+        node_name: BuildToolkit-Ubuntu16.04.2_amd64
+    run_list:
+      - recipe[fidata-build-toolkit::default]
+    verifier:
+      inspec_tests:
+        - git: https://github.com/FIDATA/build-environment
+          branch: master
+  - name: JenkinsMaster-vbox
+    includes:
+      - UbuntuServer16.04.2+amd64-vbox
+    driver:
+      vm_hostname: JenkinsMaster
+      network:
+        -
+          - forwarded_port
+          - guest: 80
+            host: 8082
+    provisioner:
+      solo_rb:
+        environment: test-vbox
+        node_name: JenkinsMaster
+    run_list:
+      - recipe[fidata-jenkins-master::default]
+  - name: JenkinsMaster-amazon
+    includes:
+      - UbuntuServer16.04.2+amd64-amazon
+    driver:
+      instance_type: t2.small
+      block_device_mappings:
+        - device_name: /dev/sda1
+          ebs:
+            delete_on_termination: true
+            volume_type: gp2
+            volume_size: 8
+      security_group_ids:
+        - <%= ENV['AWS_SSH_SG_ID'] %>
+        - <%= ENV['AWS_HTTP_S_SG_ID'] %>
+    provisioner:
+      solo_rb:
+        environment: test-amazon
+        node_name: jenkins.fidata.org
+    run_list:
+      - recipe[fidata-jenkins-master::default]

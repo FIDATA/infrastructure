@@ -1,0 +1,15 @@
+/build/
+# Gradle
+.gradle/
+gradle.properties
+# Eclipse
+.settings/
+# GFM Viewer
+.*.md.html
+# Bundle
+gems.locked
+# Packer
+packer_cache/
+*.pem
+# Rubocop
+.rubocop_todo.yml
