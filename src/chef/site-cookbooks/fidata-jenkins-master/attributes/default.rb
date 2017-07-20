@@ -60,7 +60,7 @@ default['jenkins']['master']['plugins'] = {
   'junit': '1.20',
   'workflow-aggregator': '2.5',
   'github': '1.27.0',
-  'github-branch-source': '2.2.1',
+  'github-branch-source': '2.2.2',
   'github-pr-comment-build': '2.0',
   'maven-dependency-update-trigger': '1.5',
   'global-build-stats': '1.4',
