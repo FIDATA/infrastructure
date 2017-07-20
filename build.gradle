@@ -1127,8 +1127,7 @@ task('foodcritic', type: CrossPlatformExec) {
     bundleLogLevelArgs + [
       'foodcritic',
       '--cookbook-path', 'cookbooks', 'site-cookbooks',
-      '--environment-path', 'environments',
-      '--role-path', 'roles'
+      '--environment-path', 'environments'
     ]
   )
 }
