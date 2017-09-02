@@ -408,29 +408,6 @@ ext.with {
     ]
   ]
 
-  getAtlasArtifactMetadataFull = { name, type ->
-    new ByteArrayOutputStream().withStream { os ->
-      exec {
-        environment([
-          'ATLAS_TOKEN': atlasToken
-        ])
-        commandLine([
-          bundleExecutable, 'exec',
-          'ruby'
-        ] +
-        rubyLogLevelArgs +
-        [
-          '--',
-          "$libDir/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full.rb",
-          'get',
-          name, type
-        ])
-        standardOutput = os
-      }
-      new JsonSlurper().parseText(os.toString())
-    }
-  }
-
   terraformOutputs = [:].withDefault { [:] }
 
   dataBags = [
@@ -440,6 +417,29 @@ ext.with {
     'JenkinsEC2Cloud': [:],
     'ReleaseCredentials': [:],
   ]
+}
+
+Map getAtlasArtifactMetadataFull(name, type) {
+  new ByteArrayOutputStream().withStream { os ->
+    exec {
+      environment([
+        'ATLAS_TOKEN': atlasToken
+      ])
+      commandLine([
+        bundleExecutable, 'exec',
+        'ruby'
+      ] +
+      rubyLogLevelArgs +
+      [
+        '--',
+        "$libDir/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full.rb",
+        'get',
+        name, type
+      ])
+      standardOutput = os
+    }
+    new JsonSlurper().parseText(os.toString())
+  }
 }
 
 task('createVideocaptureDir') {
