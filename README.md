@@ -15,6 +15,7 @@ This repository contains:
 *	Scripts to deploy infrastructure with Terraform
 
 ### Prerequisites:
+*	Java (JRE or JDK) >= 8
 *	VirtualBox (5.1.26)
 *	Packer
 *	AWS CLI
