@@ -488,8 +488,8 @@ class GenerateSSHKeyTask extends DefaultTask {
   void generate() {
     if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
       KeyPair kpair = KeyPair.genKeyPair(jsch, keyType, keySize)
-      kpair.writePrivateKey(privateKeyFile.toString())
-      kpair.writePublicKey(publicKeyFile.toString(), email)
+      kpair.writePrivateKey(privateKeyFile.path)
+      kpair.writePublicKey(publicKeyFile.path, email)
       kpair.dispose()
     }
   }
@@ -1178,7 +1178,7 @@ task('codenarc', type: CodeNarc) {
   group 'Test'
   source 'Jenkinsfile'
   source 'build.gradle'
-  for (f in new FileNameFinder().getFileNames(projectDir.toString(), '**/*.groovy')) {
+  for (f in new FileNameFinder().getFileNames(projectDir.path, '**/*.groovy')) {
     source f
   }
   configFile = file('config/codenarc/codenarc.groovy')
@@ -1206,7 +1206,7 @@ task('kitchenDiagnose', type: CrossPlatformExec) {
 
 task('rubocop', type: CrossPlatformExec) {
   group 'Test'
-  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.toString(), '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
+  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.path, '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
   outputs.upToDateWhen { false }
   commandLine(
     [
