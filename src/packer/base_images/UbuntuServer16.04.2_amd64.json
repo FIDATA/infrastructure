@@ -127,8 +127,7 @@
 			],
 			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
-				"src/scripts/linux/vagrant.sh",
-				"src/scripts/linux/chef.sh"
+				"src/scripts/linux/vagrant.sh"
 			]
 		},
 		{
