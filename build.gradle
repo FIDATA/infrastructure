@@ -405,7 +405,8 @@ task('terraformValidate-common', type: Exec) {
   commandLine(
     [
       'terraform', 'validate'
-    ]
+    ] +
+    terraformVariablesForArgs
   )
 }
 
@@ -1018,7 +1019,8 @@ task('terraformValidate-instances', type: Exec) {
   commandLine(
     [
       'terraform', 'validate'
-    ]
+    ] +
+    terraformVariablesForArgs
   )
 }
 
