@@ -15,7 +15,7 @@ This repository contains:
 *	Scripts to deploy infrastructure with Terraform
 
 ### Prerequisites:
-*	VirtualBox (5.1.18)
+*	VirtualBox (5.1.26)
 *	Packer
 *	AWS CLI
 *	Vagrant
