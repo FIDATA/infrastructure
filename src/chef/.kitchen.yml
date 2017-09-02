@@ -1,9 +1,9 @@
 <% require_relative '../lib/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full' %>platforms:
-  - name: UbuntuServer16.04.2+amd64-amazon
+  - name: UbuntuServer16.04.3+amd64-amazon
     driver:
       name: ec2
       image_search:
-        name: UbuntuServer16.04.2-*
+        name: UbuntuServer16.04.3-*
         tag:architecture: amd64
         owner-id: "880042334380"
       region: eu-west-1
@@ -15,13 +15,13 @@
       no-host-key-verify: true
       connection_timeout: 30
       keepalive: false
-  - name: UbuntuServer16.04.2+amd64-vbox
+  - name: UbuntuServer16.04.3+amd64-vbox
     driver:
       name: vagrant
       cachier: machine	
-      box: fidata/UbuntuServer16.04.2_amd64
-      box_url: fidata/UbuntuServer16.04.2_amd64
-      bov_version: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.2_amd64', 'vagrant.box')['version'] %>
+      box: fidata/UbuntuServer16.04.3_amd64
+      box_url: fidata/UbuntuServer16.04.3_amd64
+      bov_version: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.3_amd64', 'vagrant.box')['version'] %>
       box_check_update: true
       username: ubuntu
       password: ubuntu
@@ -43,7 +43,7 @@ verifier:
 suites:
   - name: BuildToolkit
     includes:
-      - UbuntuServer16.04.2+amd64-amazon
+      - UbuntuServer16.04.3+amd64-amazon
     driver:
       instance_type: t2.medium
       block_device_mappings:
@@ -56,7 +56,7 @@ suites:
         - <%= ENV['AWS_SSH_SG_ID'] %>
     provisioner:
       solo_rb:
-        node_name: BuildToolkit-Ubuntu16.04.2_amd64
+        node_name: BuildToolkit-Ubuntu16.04.3_amd64
     run_list:
       - recipe[fidata-build-toolkit::default]
     verifier:
@@ -65,7 +65,7 @@ suites:
           branch: master
   - name: JenkinsMaster-vbox
     includes:
-      - UbuntuServer16.04.2+amd64-vbox
+      - UbuntuServer16.04.3+amd64-vbox
     driver:
       vm_hostname: JenkinsMaster
       network:
@@ -81,7 +81,7 @@ suites:
       - recipe[fidata-jenkins-master::default]
   - name: JenkinsMaster-amazon
     includes:
-      - UbuntuServer16.04.2+amd64-amazon
+      - UbuntuServer16.04.3+amd64-amazon
     driver:
       instance_type: t2.small
       block_device_mappings:

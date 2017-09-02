@@ -273,7 +273,7 @@ ext.with {
   ]
 
   jenkinsSlaves = [
-    'UbuntuServer16.04.2+amd64': [
+    'UbuntuServer16.04.3+amd64': [
       'security_groups': ['SSH'] as Set<String>,
       'type_data': [
         'type': 'unix',
@@ -511,25 +511,25 @@ packer {
     'encrypted_data_bag_secret': encryptedDataBagSecret,
   ]
   // Kernel images
-  template 'src/packer/kernel_images/kernel-UbuntuServer16.04.2_amd64.json'
+  template 'src/packer/kernel_images/kernel-UbuntuServer16.04.3_amd64.json'
 
   // Base images
-  template 'src/packer/base_images/UbuntuServer16.04.2_amd64.json'
+  template 'src/packer/base_images/UbuntuServer16.04.3_amd64.json'
 
   // Instances
   template 'src/packer/instances/JenkinsMaster.json'
   template 'src/packer/instances/JenkinsSlaves.json'
 }
 
-tasks['build-kernel-UbuntuServer16.04.2_amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.2_amd64-vbox'].dependsOn 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.2_amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer16.04.2_amd64-vbox'
-tasks['build-UbuntuServer16.04.2_amd64-amazon'].dependsOn 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.2_amd64'].dependsOn 'createManifestOutputDir'
+tasks['build-kernel-UbuntuServer16.04.3_amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.3_amd64-vbox'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.3_amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer16.04.3_amd64-vbox'
+tasks['build-UbuntuServer16.04.3_amd64-amazon'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer16.04.3_amd64'].dependsOn 'createManifestOutputDir'
 
 task('clean-base') {
   group 'Build'
-  dependsOn 'clean-UbuntuServer16.04.2_amd64'
+  dependsOn 'clean-UbuntuServer16.04.3_amd64'
 }
 
 task('clean') {
@@ -538,17 +538,17 @@ task('clean') {
 
 task('build-base-vbox') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.2_amd64-vbox'
+  dependsOn 'build-UbuntuServer16.04.3_amd64-vbox'
 }
 
 task('build-base-amazon') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.2_amd64-amazon'
+  dependsOn 'build-UbuntuServer16.04.3_amd64-amazon'
 }
 
 task('build-base') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.2_amd64'
+  dependsOn 'build-UbuntuServer16.04.3_amd64'
 }
 
 task('berksUpdate') {
@@ -826,7 +826,7 @@ task('generateRuntimeDataBag') {
 task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
-  mustRunAfter 'build-UbuntuServer16.04.2_amd64-vbox'
+  mustRunAfter 'build-UbuntuServer16.04.3_amd64-vbox'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -848,7 +848,7 @@ task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
 task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
-  mustRunAfter 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64'
+  mustRunAfter 'build-UbuntuServer16.04.3_amd64-amazon', 'build-UbuntuServer16.04.3_amd64'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -870,7 +870,7 @@ task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
 task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformOutput-common', 'generateRuntimeDataBag'
-  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.2_amd64-vbox'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.3_amd64-vbox'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -892,7 +892,7 @@ task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
 task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag'
-  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.3_amd64-amazon', 'build-UbuntuServer16.04.3_amd64'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1005,7 +1005,7 @@ task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 tasks['build-JenkinsMaster'].with {
   dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
-  mustRunAfter 'build-UbuntuServer16.04.2_amd64-amazon', 'build-UbuntuServer16.04.2_amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
+  mustRunAfter 'build-UbuntuServer16.04.3_amd64-amazon', 'build-UbuntuServer16.04.3_amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
 }
 
 task('terraformValidate-instances', type: Exec) {

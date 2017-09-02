@@ -1,6 +1,6 @@
 {
 	"_license_notice": [
-		"Packer template for Ubuntu Server 16.04.2 amd64 base image",
+		"Packer template for Ubuntu Server 16.04.3 amd64 base image",
 		"Copyright © 2015-2017  Basil Peace",
 		"",
 		"This file is part of FIDATA Infrastructure.",
@@ -20,12 +20,12 @@
 		"permissions and limitations under the License."
 	],
 	"variables": {
-		"base_name": "UbuntuServer16.04.2",
+		"base_name": "UbuntuServer16.04.3",
 		"architecture": "amd64",
 		"aws_region": "eu-west-1",
 		"aws_vpc_id": "vpc-7c3f9d1b",
 		"aws_subnet_id": "subnet-3615b351",
-		"aws_source_ami": "ami-6c101b0a",
+		"aws_source_ami": "ami-674cbc1e",
 		"aws_instance_type": "t2.nano",
 		"aws_volume_size": "8",
 		"ssh_port": "22",
