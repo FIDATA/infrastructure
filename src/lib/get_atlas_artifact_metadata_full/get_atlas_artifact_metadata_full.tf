@@ -27,6 +27,7 @@ variable "type" {
 }
 
 provider "atlas" {
+	version = ">= 0.1"
 	token = "${var.atlas_token}"
 }
 

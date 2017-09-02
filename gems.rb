@@ -22,20 +22,22 @@
 
 source 'https://fidata.jfrog.io/fidata/api/gems/gems'
 
-gem 'chef', '~> 13'
-gem 'knife-solo'
-gem 'knife-solo_data_bag', '~> 2.1.0'
-gem 'thor'
-gem 'berkshelf', '~> 6'
-gem 'knife-art', '~> 1'
-gem 'rubocop'
-gem 'cookstyle', '~> 2'
-gem 'foodcritic', '~> 11'
-gem 'test-kitchen', '~> 1'
-gem 'kitchen-vagrant', '~> 1'
-gem 'kitchen-ec2', '~> 1'
-gem 'kitchen-inspec'
+# CAVEAT: We can't use just any version of Chef gem.
+# Specified version should exist on Omnitruck <>
+gem 'chef', '13.3.42'
+gem 'knife-solo', '~> 0.6'
+gem 'knife-solo_data_bag', '~> 2.1'
+gem 'thor', '~> 0.19'
+gem 'berkshelf', '~> 6.3'
+gem 'knife-art', '~> 1.0'
+gem 'rubocop', '~> 0.49'
+gem 'cookstyle', '~> 2.1'
+gem 'foodcritic', '~> 11.3'
+gem 'test-kitchen', '~> 1.17'
+gem 'kitchen-vagrant', '~> 1.2'
+gem 'kitchen-ec2', '~> 1.3'
+gem 'kitchen-inspec', '~> 0.19'
 
 group :plugins do
-  gem 'vagrant-cachier'
+  gem 'vagrant-cachier', '~> 1.2'
 end
