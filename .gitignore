@@ -6,8 +6,6 @@ gradle.properties
 .settings/
 # GFM Viewer
 .*.md.html
-# Bundle
-gems.locked
 # Packer
 packer_cache/
 *.pem

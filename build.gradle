@@ -36,6 +36,8 @@ buildscript {
 }
 
 plugins {
+  id 'com.github.ben-manes.versions' version '0.15.0'
+  id 'nebula.dependency-lock' version '4.9.4'
   id 'com.jfrog.artifactory' version '4.5.2'
   id 'com.github.jlouns.cpe' version '0.5.0'
   // BLOCKED: https://github.com/mmalohlava/gradle-visteg/issues/8 <>
@@ -70,26 +72,12 @@ task wrapper(type: Wrapper) {
 }
 
 LogLevel logLevel = (logging.level ?: gradle.startParameter.logLevel)
-ShowStacktrace showStacktrace = gradle.startParameter.showStacktrace
 
 ext.with {
   bundleExecutable = OperatingSystem.current().windows ? 'bundle.bat' : 'bundle'
   bundleLogLevelArgs = [].with {
     if (logLevel <= LogLevel.INFO) {
       push '--verbose'
-    }
-    it
-  }
-  gemLogLevelArgs = [].with {
-    switch (logLevel) {
-      case { it <= LogLevel.INFO }: push '--verbose'
-      case { it <= LogLevel.DEBUG }: push '--debug'
-    }
-    it
-  }
-  gemStacktraceArgs = [].with {
-    if (showStacktrace >= ShowStacktrace.ALWAYS) {
-      push '--backtrace'
     }
     it
   }
@@ -143,84 +131,8 @@ ext.with {
 
   consoleExecutable = OperatingSystem.current().windows ? 'cmd' : '/usr/bin/x-terminal-emulator'
   consoleArgs = OperatingSystem.current().windows ? ['/c', 'start', 'cmd', '/k']: ['--disable-factory', '-e']
-}
 
-/* BLOCKED: https://github.com/mmalohlava/gradle-visteg/issues/8 <>
-visteg {
-  enabled        = (logging.level ?: gradle.startParameter.logLevel) <= LogLevel.INFO
-  colouredNodes  = true
-  colouredEdges  = true
-  destination    = 'build/reports/visteg.dot'
-  exporter       = 'dot'
-  colorscheme    = 'paired12'
-  nodeShape      = 'box'
-  startNodeShape = 'hexagon'
-  endNodeShape   = 'doubleoctagon'
-} */
-
-class GemVersion {
-  String name
-  String version
-  String nativeExtensions
-}
-Map<String, GemVersion> parseGemVersions(output) {
-  final Pattern GEM_VERSION_PATTERN = ~/(?ms)^(\S+) \((\S+)( (\S+))?\)$/
-  Matcher m = GEM_VERSION_PATTERN.matcher(output)
-  Map<String, GemVersion> res = [:]
-  while (m.find()) {
-    GemVersion gemVersion = new GemVersion(
-      name: m.group(1),
-      version: m.group(2),
-      nativeExtensions: m.group(4)
-    )
-    res[gemVersion.name] = gemVersion
-  }
-  res
-}
-
-if (!file('gems.locked').exists()) {
-  exec {
-    commandLine(
-      [
-        bundleExecutable, 'update'
-      ] +
-      bundleLogLevelArgs
-    )
-  }
-}
-
-new ByteArrayOutputStream().withStream { os ->
-  exec {
-    commandLine(
-      [
-        bundleExecutable, 'exec'
-      ] +
-      bundleLogLevelArgs +
-      [
-        'gem', 'list',
-        '--local'
-      ] +
-      gemLogLevelArgs +
-      gemStacktraceArgs
-    )
-    standardOutput = os
-  }
-  ext.chefVersion = parseGemVersions(os.toString())['chef'].version
-}
-
-task('bundleDoctor', type: CrossPlatformExec) {
-  group 'Test'
-  inputs.file 'gems.rb'
-  outputs.upToDateWhen { false }
-  commandLine(
-    [
-      'bundle', 'doctor'
-    ] +
-    bundleLogLevelArgs
-  )
-}
-
-ext.with {
+  gemfile = file('gems.rb')
   libDir = file('src/lib')
   videocaptureDir = file('build/videocapture')
   vboxOutputDir = file('build/vbox')
@@ -240,9 +152,218 @@ ext.with {
   kitchenSSHPrivateKey = file("$keysDir/kitchen")
   chefIdPrivateKey = file(chefIdPrivateKey)
 
+  terraformDirs = ["$libDir/get_atlas_artifact_metadata_full"]
+  terraformDir.eachDir { d ->
+    terraformDirs << d
+  }
+}
+
+/* BLOCKED: https://github.com/mmalohlava/gradle-visteg/issues/8 <>
+visteg {
+  enabled        = (logging.level ?: gradle.startParameter.logLevel) <= LogLevel.INFO
+  colouredNodes  = true
+  colouredEdges  = true
+  destination    = 'build/reports/visteg.dot'
+  exporter       = 'dot'
+  colorscheme    = 'paired12'
+  nodeShape      = 'box'
+  startNodeShape = 'hexagon'
+  endNodeShape   = 'doubleoctagon'
+} */
+
+task('prerequisitesInstall') {
+  doLast {
+    exec {
+      commandLine(
+        [
+          bundleExecutable, 'install'
+        ] +
+        bundleLogLevelArgs
+      )
+    }
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          bundleExecutable, 'exec'
+        ] +
+        bundleLogLevelArgs +
+        [
+          'berks', 'install'
+        ] +
+        berksLogLevelArgs
+      )
+    }
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          'pipenv', 'install',
+          '--dev'
+        ] +
+        (
+          OperatingSystem.current().windows ?
+          ['--python', '3'] :
+          ['--three']
+        )
+      )
+    }
+    terraformDirs.each { d ->
+      exec {
+        workingDir d
+        environment << terraformEnvironment
+        commandLine(
+          [
+            'terraform', 'init'
+          ]
+        )
+      }
+    }
+  }
+}
+
+task('prerequisitesOutdated') {
+  doLast {
+    exec {
+      commandLine(
+        [
+          bundleExecutable, 'outdated'
+        ] +
+        bundleLogLevelArgs
+      )
+      ignoreExitValue true
+    }
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          bundleExecutable, 'exec'
+        ] +
+        bundleLogLevelArgs +
+        [
+          'berks', 'outdated'
+        ] +
+        berksLogLevelArgs
+      )
+      ignoreExitValue true
+    }
+  }
+}
+
+void bundleUpdate(List<String> gems = []) {
+  exec {
+    commandLine(
+      [
+        bundleExecutable, 'update'
+      ] +
+      gems +
+      bundleLogLevelArgs
+    )
+  }
+}
+
+void berksUpdate() {
+  exec {
+    workingDir chefDir
+    commandLine(
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs +
+      [
+        'berks', 'update'
+      ] +
+      berksLogLevelArgs
+    )
+  }
+}
+
+task('prerequisitesUpdate') {
+  mustRunAfter 'prerequisitesInstall'
+  dependsOn 'dependencyUpdates'
+  doLast {
+    bundleUpdate()
+    berksUpdate()
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
+          'pipenv', 'update',
+          '--dev'
+        ]
+      )
+    }
+    terraformDirs.each { d ->
+      exec {
+        workingDir d
+        environment << terraformEnvironment
+        commandLine(
+          [
+            'terraform', 'init',
+            '-upgrade=true'
+          ]
+        )
+      }
+    }
+  }
+}
+
+afterEvaluate {
+  tasks.each { t ->
+    if (!(t.name =~ /^prerequisites/)) {
+      t.mustRunAfter 'prerequisitesInstall'
+      if (t.name != 'dependencyUpdates') {
+        t.mustRunAfter 'prerequisitesUpdate'
+      }
+    }
+  }
+}
+
+new ByteArrayOutputStream().withStream { os ->
+  exec {
+    commandLine(
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs +
+      [
+        'ruby'
+      ] +
+      rubyLogLevelArgs +
+      [
+        '--',
+        "$libDir/get_gem_locked_version.rb",
+        'get', 'chef'
+      ]
+    )
+    standardOutput = os
+  }
+  ext.chefVersion = os.toString()
+}
+
+task('bundleDoctor', type: CrossPlatformExec) {
+  group 'Test'
+  commandLine(
+    [
+      'bundle', 'doctor'
+    ] +
+    bundleLogLevelArgs
+  )
+}
+
+task('pipenvCheck', type: Exec) {
+  group 'Test'
+  commandLine(
+    [
+      'pipenv', 'check'
+    ]
+  )
+}
+
+ext.with {
   sshKeyType = KeyPair.RSA
   sshKeySize = 4096
-  
+
   kitchenEnvironment = [
     'CHEF_VERSION': chefVersion,
     'AWS_ACCESS_KEY_ID': awsAccessKey,
@@ -309,7 +430,7 @@ ext.with {
       new JsonSlurper().parseText(os.toString())
     }
   }
-  
+
   terraformOutputs = [:].withDefault { [:] }
 
   dataBags = [
@@ -354,15 +475,15 @@ class GenerateSSHKeyTask extends DefaultTask {
   }
   @OutputFile
   File getPublicKeyFile() { publicKeyFile }
-  
+
   int keyType
   int keySize
   String email
-  
+
   static {
     JSCH = new JSch()
   }
-  
+
   @TaskAction
   void generate() {
     if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
@@ -553,31 +674,9 @@ task('build-base') {
 }
 
 task('berksUpdate') {
-  mustRunAfter 'berksVerify'
-  inputs.file berksfile
   doLast {
-    exec {
-      workingDir chefDir
-      commandLine(
-        [
-          bundleExecutable, 'exec'
-        ] +
-        bundleLogLevelArgs +
-        [
-          'berks', berksfileLock.exists() ? 'update' : 'install'
-        ] +
-        berksLogLevelArgs
-      )
-    }
+    berksUpdate()
   }
-  /* CAVEAT:
-   * To determine correctly whether the task is up-to-date we would
-   * have to parse Berksfile, detect inputs and outputs and also
-   * assume that remote dependencies are always up-to-date.
-   * Too hard to implement and error-prone, so we just assume that
-   * the task is always not up-to-date <> */
-  outputs.file berksfileLock
-  outputs.upToDateWhen { false }
 }
 
 task('berksVerify') {
@@ -760,7 +859,7 @@ task('generateRuntimeDataBag') {
           'access_key': terraformOutputs['fidata_jenkins_iam_access_key']['value'],
           'secret_key': terraformOutputs['fidata_jenkins_iam_secret_key']['value'],
         ],
-      ]      
+      ]
     }
     property 'JenkinsGithubOAuthDataBag', {
       dataBags['JenkinsGithubOAuth'] << [
@@ -818,7 +917,7 @@ task('generateRuntimeDataBag') {
       }
     }
   }
-  
+
   for (dataBag in dataBags) {
     outputs.file "$chefDir/data_bags/runtime/${dataBag.key}.json"
   }
@@ -1107,7 +1206,7 @@ task('kitchenDiagnose', type: CrossPlatformExec) {
 
 task('rubocop', type: CrossPlatformExec) {
   group 'Test'
-  List sourceFiles = ['gems.rb', 'src/lib'] + new FileNameFinder().getFileNames(chefDir.toString(), '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
+  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.toString(), '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
   outputs.upToDateWhen { false }
   commandLine(
     [
@@ -1152,7 +1251,7 @@ task('cookstyle', type: CrossPlatformExec) {
 
 task('check-noSideEffects') {
   group 'Test'
-  dependsOn 'codenarc', 'bundleDoctor', 'berksVerify', 'validate', 'rubocop', 'foodcritic', 'cookstyle', 'terraformValidate-common', 'terraformValidate-instances'
+  dependsOn 'codenarc', 'bundleDoctor', 'pipenvCheck', 'berksVerify', 'validate', 'rubocop', 'foodcritic', 'cookstyle', 'terraformValidate-common', 'terraformValidate-instances'
 }
 
 /* CAVEAT:

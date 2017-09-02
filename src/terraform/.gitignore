@@ -1,0 +1,3 @@
+# Terraform
+**/.terraform/plugins/*/*
+!**/.terraform/plugins/*/lock.json

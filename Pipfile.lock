@@ -1,0 +1,52 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "6a7b573e02ac9abf76949ef99fd5963b24a8063c7a327dc9db4cccca9dae998d"
+        },
+        "requires": {
+            "python_version": "~= 3.0"
+        },
+        "sources": [
+            {
+                "url": "https://pypi.python.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {},
+    "develop": {
+        "awscli": {
+            "version": "==1.11.145"
+        },
+        "botocore": {
+            "version": "==1.7.3"
+        },
+        "colorama": {
+            "version": "==0.3.7"
+        },
+        "docutils": {
+            "version": "==0.14"
+        },
+        "jmespath": {
+            "version": "==0.9.3"
+        },
+        "pyasn1": {
+            "version": "==0.3.3"
+        },
+        "python-dateutil": {
+            "version": "==2.6.1"
+        },
+        "pyyaml": {
+            "version": "==3.12"
+        },
+        "rsa": {
+            "version": "==3.4.2"
+        },
+        "s3transfer": {
+            "version": "==0.1.11"
+        },
+        "six": {
+            "version": "==1.10.0"
+        }
+    }
+}

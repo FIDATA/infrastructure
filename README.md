@@ -18,17 +18,32 @@ This repository contains:
 *	Java (JRE or JDK) >= 8
 *	VirtualBox (5.1.26)
 *	Packer
-*	AWS CLI
 *	Vagrant
-*	Terraform
-*	Ruby & Bundler
+*	Terraform (~> 0.10)
+*	Ruby & Bundler (~> 1.14, tested with 1.15.4)
+*	Python 3 & [Pipenv](http://pipenv.org/)
 
-	Gradle doesn't run `bundle update` if gems are already installed
-	(i.e. `gems.locked` file exists). When necessary you have to run it
-	manually:
-	```
-	bundle update
-	```
+Before start you have to install required gems, packages, plugins
+and cookbooks:
+```
+./gradlew prerequisitesInstall
+```
+
+When necessary you can check locked versions for updates with:
+```
+./gradlew prerequisitesOutdated
+```
+and update them with:
+```
+./gradlew prerequisitesUpdate
+```
+
+NOTE: Update of gems with exact version constraint (e.g. Chef)
+is not supported now (see #67). When you change their versions
+you have to update them manually with:
+```
+bundle update chef
+```
 
 ### Workflow:
 

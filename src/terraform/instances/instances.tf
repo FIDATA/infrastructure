@@ -16,6 +16,10 @@
    See the License for the specific language governing permissions and
    limitations under the License. */
 
+terraform {
+  required_version = "~> 0.10"
+}
+
 # Variables
 
 variable "atlas_token" {
@@ -37,19 +41,19 @@ variable "cloudflare_token" {
 # Providers
 
 provider "atlas" {
-  version = ">= 0.1"
+  version = "~> 0.1"
   token = "${var.atlas_token}"
 }
 
 provider "aws" {
-  version = ">= 0.1"
+  version = "~> 0.1"
   access_key = "${var.aws_access_key}"
   secret_key = "${var.aws_secret_key}"
   region = "eu-west-1"
 }
 
 provider "cloudflare" {
-  version = ">= 0.1"
+  version = "~> 0.1"
   email = "${var.cloudflare_email}"
   token = "${var.cloudflare_token}"
 }
