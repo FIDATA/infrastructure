@@ -4,7 +4,10 @@ AllCops:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-Style/EndOfLine:
+Lint/ScriptPermission:
+  Enabled: false
+
+Layout/EndOfLine:
   Enabled: false
 
 Metrics/LineLength:
