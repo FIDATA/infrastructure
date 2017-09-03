@@ -186,7 +186,7 @@
 				"type": "atlas",
 				"token": "{{ user `atlas_token` }}",
 				"artifact": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"artifact_type": "amazon.ami"
+				"artifact_type": "amazon.image"
 			},
 			{
 				"type": "manifest",

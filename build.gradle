@@ -869,7 +869,7 @@ task('generateRuntimeDataBag') {
     }
     property 'JenkinsEC2CloudDataBag', {
       for (s in jenkinsSlaves) {
-        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.ami')['ami_id']
+        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.image')['ami_id']
       }
       dataBags['JenkinsEC2Cloud'] << [
         'region': 'eu-west-1',

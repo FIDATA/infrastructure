@@ -108,7 +108,7 @@
 				"type": "atlas",
 				"token": "{{ user `atlas_token` }}",
 				"artifact": "fidata/JenkinsSlave-{{ build_name }}",
-				"artifact_type": "amazon.ami"
+				"artifact_type": "amazon.image"
 			},
 			{
 				"type": "manifest",
