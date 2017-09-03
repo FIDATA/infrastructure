@@ -101,6 +101,13 @@ end
 
 include_recipe 'perl::default'
 
+case node['platform_family']
+when 'debian'
+  package 'doxygen'
+when 'windows'
+  chocolatey_package 'doxygen.install'
+end
+
 include_recipe 'pandoc::default'
 
 include_recipe 'texlive::default'
