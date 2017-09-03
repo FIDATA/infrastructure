@@ -94,9 +94,9 @@ end
 
 include_recipe 'perl::default'
 
-include_recipe 'texlive::default'
-
 include_recipe 'pandoc::default'
+
+include_recipe 'texlive::default'
 
 case node['platform_family']
 when 'fedora', 'rhel', 'freebsd', 'debian', 'mac_os_x'
