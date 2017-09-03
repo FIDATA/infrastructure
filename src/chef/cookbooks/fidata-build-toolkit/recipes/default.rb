@@ -91,6 +91,7 @@ unless node['platform_family'] == 'windows'
     end
   end
 end
+execute 'bundle config specific_platform true'
 
 python_runtime '3.5' do
   pip_version '9.0.1'
