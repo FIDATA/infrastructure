@@ -92,6 +92,13 @@ unless node['platform_family'] == 'windows'
   end
 end
 
+python_runtime '3.5' do
+  pip_version '9.0.1'
+end
+python_package 'pipenv' do
+  python '3.5'
+end
+
 include_recipe 'perl::default'
 
 include_recipe 'pandoc::default'
