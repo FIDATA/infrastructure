@@ -214,7 +214,8 @@ task('prerequisitesInstall') {
         environment << terraformEnvironment
         commandLine(
           [
-            'terraform', 'init'
+            'terraform', 'init',
+            '-input=false'
           ]
         )
       }
@@ -300,6 +301,7 @@ task('prerequisitesUpdate') {
         commandLine(
           [
             'terraform', 'init',
+            '-input=false',
             '-upgrade=true'
           ]
         )
@@ -575,6 +577,7 @@ task('terraformApply-common') {
       commandLine(
         [
           'terraform', 'apply',
+          '-input=false',
           "-state=${stateFile.absolutePath}",
           '-lock=true'
         ] +
@@ -1165,6 +1168,7 @@ task('terraformApply-instances') {
       commandLine(
         [
           'terraform', 'apply',
+          '-input=false',
           "-state=${stateFile.absolutePath}",
           '-lock=true'
         ] +
