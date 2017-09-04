@@ -776,6 +776,30 @@ task('kitchenConverge-BuildToolkit', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
+task('kitchenLogin-BuildToolkit') {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common'
+  mustRunAfter 'kitchenConverge-BuildToolkit'
+  doLast {
+    CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
+      consoleArgs +
+      [
+        bundleExecutable, 'exec'
+      ] +
+      bundleLogLevelArgs + [
+        'kitchen', 'login',
+        'BuildToolkit',
+        '--no-log-overwrite'
+      ] +
+      kitchenLogLevelArgs
+    ) as String[])
+    Executor executor = new DefaultExecutor()
+    executor.workingDirectory = chefDir
+    executor.execute(cmdLine, new HashMap(System.env) + kitchenEnvironment)
+  }
+  outputs.upToDateWhen { false }
+}
+
 task('kitchenVerify-BuildToolkit', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'kitchenConverge-BuildToolkit'
