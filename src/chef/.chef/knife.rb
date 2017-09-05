@@ -38,6 +38,5 @@ cookbook_path [
 ]
 data_bags_path   "#{knife[:chef_repo_path]}/data_bags"
 environment_path "#{knife[:chef_repo_path]}/environments"
-role_path        "#{knife[:chef_repo_path]}/roles"
 
 data_bag_encrypt_version 2

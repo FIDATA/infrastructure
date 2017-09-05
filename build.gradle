@@ -1236,7 +1236,7 @@ task('kitchenDiagnose', type: CrossPlatformExec) {
 
 task('rubocop', type: CrossPlatformExec) {
   group 'Test'
-  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.path, '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/* roles/**/*')
+  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.path, '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/*')
   outputs.upToDateWhen { false }
   commandLine(
     [
