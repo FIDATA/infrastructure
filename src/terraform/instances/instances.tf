@@ -96,7 +96,9 @@ data "aws_security_group" "HTTP_S" {
 data "atlas_artifact" "JenkinsMasterAMI" {
   name = "fidata/JenkinsMaster"
   type = "amazon.image"
-  version = "latest"
+  metadata {
+    version = "1.1.0"
+  }
 }
 
 # Instances

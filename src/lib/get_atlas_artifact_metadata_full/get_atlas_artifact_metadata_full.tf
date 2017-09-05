@@ -29,6 +29,9 @@ variable "name" {
 variable "type" {
   type = "string"
 }
+variable "version" {
+  type = "string"
+}
 
 provider "atlas" {
   version = "~> 0.1"
@@ -38,7 +41,9 @@ provider "atlas" {
 data "atlas_artifact" "atlas_artifact" {
   name = "${var.name}"
   type = "${var.type}"
-  version = "latest"
+  metadata {
+    version = "${var.version}"
+  }
 }
 output "metadata_full" {
   value = "${data.atlas_artifact.atlas_artifact.metadata_full}"

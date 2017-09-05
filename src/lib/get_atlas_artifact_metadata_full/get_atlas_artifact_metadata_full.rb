@@ -26,7 +26,7 @@ require 'open3'
 require 'json'
 require 'thor'
 
-def get_atlas_artifact_metadata_full(name, type)
+def get_atlas_artifact_metadata_full(name, type, version)
   Dir::Tmpname.create(['', '.tfstate'], ENV['TEMP']) do |state_file|
     STDERR.write Open3.capture2(
       'terraform', 'apply',
@@ -34,6 +34,7 @@ def get_atlas_artifact_metadata_full(name, type)
       '-var', "atlas_token=#{ENV['ATLAS_TOKEN']}",
       '-var', "name=#{name}",
       '-var', "type=#{type}",
+      '-var', "version=#{version}",
       chdir: File.expand_path(File.dirname(__FILE__))
     )[0]
     return JSON.parse(Open3.capture2(
@@ -47,9 +48,9 @@ end
 
 # CLI
 class GetAtlasArtifactMetadataFull < Thor
-  desc 'get name type', 'Get Atlas artifact full metadata'
-  def get(name, type)
-    puts JSON.generate(get_atlas_artifact_metadata_full(name, type))
+  desc 'get name type version', 'Get Atlas artifact full metadata'
+  def get(name, type, version)
+    puts JSON.generate(get_atlas_artifact_metadata_full(name, type, version))
   end
 end
 

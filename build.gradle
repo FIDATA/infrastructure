@@ -395,6 +395,7 @@ ext.with {
 
   jenkinsSlaves = [
     'UbuntuServer16.04.3+amd64': [
+      'version': '0.1.0',
       'security_groups': ['SSH'] as Set<String>,
       'type_data': [
         'type': 'unix',
@@ -419,7 +420,7 @@ ext.with {
   ]
 }
 
-Map getAtlasArtifactMetadataFull(name, type) {
+Map getAtlasArtifactMetadataFull(name, type, version) {
   new ByteArrayOutputStream().withStream { os ->
     exec {
       environment([
@@ -434,7 +435,7 @@ Map getAtlasArtifactMetadataFull(name, type) {
         '--',
         "$libDir/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full.rb",
         'get',
-        name, type
+        name, type, version
       ])
       standardOutput = os
     }
@@ -630,6 +631,7 @@ packer {
     'aws_access_key': awsAccessKey,
     'aws_secret_key': awsSecretKey,
     'atlas_token': atlasToken,
+    'vagrant_cloud_token': vagrantCloudToken,
     'encrypted_data_bag_secret': encryptedDataBagSecret,
   ]
   // Kernel images
@@ -869,7 +871,7 @@ task('generateRuntimeDataBag') {
     }
     property 'JenkinsEC2CloudDataBag', {
       for (s in jenkinsSlaves) {
-        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.image')['ami_id']
+        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.image', s.value['version'])['ami_id']
       }
       dataBags['JenkinsEC2Cloud'] << [
         'region': 'eu-west-1',

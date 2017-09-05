@@ -36,7 +36,8 @@
 		"manifest_output_dir": ".",
 		"aws_access_key": "",
 		"aws_secret_key": "",
-		"atlas_token": ""
+		"atlas_token": "",
+		"vagrant_cloud_token": ""
 	},
 	"builders": [
 		{
@@ -172,21 +173,21 @@
 			},
 			{
 				"only": [ "vbox" ],
-				"type": "atlas",
+				"type": "vagrant-cloud",
 				"keep_input_artifact": false,
-				"token": "{{ user `atlas_token` }}",
-				"artifact": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"artifact_type": "vagrant.box",
-				"metadata": {
-					"provider": "virtualbox"
-				}
+				"access_token": "{{ user `vagrant_cloud_token` }}",
+				"box_tag": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
+				"version": "0.1.1"
 			},
 			{
 				"only": [ "amazon" ],
 				"type": "atlas",
 				"token": "{{ user `atlas_token` }}",
 				"artifact": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"artifact_type": "amazon.image"
+				"artifact_type": "amazon.image",
+				"metadata": {
+					"version": "1.0.1"
+				}
 			},
 			{
 				"type": "manifest",
