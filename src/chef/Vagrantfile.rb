@@ -29,7 +29,7 @@ Vagrant.configure('2') do |config|
   config.vbguest.auto_update = false if Vagrant.has_plugin?('vbguest')
 
   # enable cachier globally
-  if !ENV['GLOBAL_VAGRANT_CACHIER_DISABLED'] && Vagrant.has_plugin?('vagrant-cachier')
+  unless ENV['GLOBAL_VAGRANT_CACHIER_DISABLED']
 
     # cache bussers, but only if we detect a test-kitchen run
     # see https://github.com/tknerr/bills-kitchen/pull/78

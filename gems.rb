@@ -37,7 +37,3 @@ gem 'test-kitchen', '~> 1.17'
 gem 'kitchen-vagrant', '~> 1.2'
 gem 'kitchen-ec2', '~> 1.3'
 gem 'kitchen-inspec', '~> 0.19'
-
-group :plugins do
-  gem 'vagrant-cachier', '~> 1.2'
-end

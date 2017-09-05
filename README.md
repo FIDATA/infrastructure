@@ -18,7 +18,7 @@ This repository contains:
 *	Java (JRE or JDK) >= 8
 *	VirtualBox (5.1.26)
 *	Packer
-*	Vagrant
+*	Vagrant and vagrant-cachier plugin
 *	Terraform (~> 0.10)
 *	Ruby & Bundler (~> 1.14, tested with 1.15.4)
 *	Python 3 & [Pipenv](http://pipenv.org/)
