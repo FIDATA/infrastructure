@@ -24,3 +24,11 @@
 # limitations under the License.
 
 include_recipe 'fidata-build-toolkit::default'
+
+directory '/srv/jenkins' do
+  user node['fidata']['build-toolkit']['user']
+  group node['fidata']['build-toolkit']['user']
+  recursive true
+  mode '0755'
+  action :create
+end
