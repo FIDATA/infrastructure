@@ -70,6 +70,8 @@ suites:
           - forwarded_port
           - guest: 80
             host: 8082
+      customize:
+        memory: 2048
     provisioner:
       solo_rb:
         environment: test-vbox
