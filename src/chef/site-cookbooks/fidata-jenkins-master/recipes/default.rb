@@ -28,11 +28,13 @@
 # on the second run
 # To make it idempotent the following tasks should be accomplished:
 #   * Revert applied security
-#   * Rewrite groovy script using construction like this:
-#     if (!securityRealm.equals(instance.getSecurityRealm())) {
-#       ... // change value
-#       instance.save()
-#     }
+#   * Rewrite groovy scripts using construction like this:
+#     ```
+#       if (!securityRealm.equals(instance.getSecurityRealm())) {
+#         ... // change value
+#         instance.save()
+#       }
+#     ```
 # <>
 
 node.default.tap do |default|
