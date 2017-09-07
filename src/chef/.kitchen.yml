@@ -15,7 +15,7 @@
   - name: UbuntuServer16.04.3+amd64-vbox
     driver:
       name: vagrant
-      cachier: machine	
+      cachier: machine
       box: fidata/UbuntuServer16.04.3_amd64
       box_url: fidata/UbuntuServer16.04.3_amd64
       bov_version: "0.1.1"
