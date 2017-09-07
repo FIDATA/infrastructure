@@ -581,6 +581,27 @@ jenkins_script 'configure_amazon_ec2_plugin' do
   action :execute
 end
 
+# Create scm-sync-configuration log recorder
+
+jenkins_script 'create_scm_sync_configuration_log_recorder' do
+  command <<~EOF
+    import jenkins.model.Jenkins
+    import hudson.logging.LogRecorder
+    import java.util.logging.Level
+
+    Jenkins instance = Jenkins.getInstance()
+
+    LogRecorder logRecorder = new hudson.logging.LogRecorder('scm_sync_configuration')
+    LogRecorder.Target logRecorderTarget = new LogRecorder.Target('hudson.plugins.scm_sync_configuration', Level.ALL)
+    logRecorder.targets.add logRecorderTarget
+
+    instance.log.logRecorders['scm_sync_configuration'] = logRecorder
+
+    instance.save()
+  EOF
+  action :execute
+end
+
 # Create admin user
 
 jenkins_user 'admin' do
