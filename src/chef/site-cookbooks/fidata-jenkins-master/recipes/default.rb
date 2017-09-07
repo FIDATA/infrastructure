@@ -409,6 +409,20 @@ template 'enable_jenkins_cli_over_remoting' do
   action :create
 end
 
+# Turn off executors on master
+
+jenkins_script 'turn_off_executors_on_master' do
+  command <<~EOF
+    import jenkins.model.Jenkins
+
+    Jenkins instance = Jenkins.getInstance()
+
+    instance.setNumExecutors(0)
+
+    instance.save()
+  EOF
+end
+
 # Configure mailer plugin
 
 jenkins_script 'configure_mailer_plugin' do
