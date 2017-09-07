@@ -44,6 +44,7 @@ default['jenkins']['master']['plugins'] = {
   'ec2': '1.36',
   'scm-sync-configuration': '0.0.10',
   'next-build-number': '1.4',
+  'support-core': '2.41',
   'lenientshutdown': '1.1.1',
 
   # UX
@@ -128,7 +129,6 @@ default['jenkins']['master']['plugins'] = {
   'ssh-credentials': '1.13',
   'structs': '1.9',
   'subversion': '2.9',
-  'support-core': '2.41',
   'token-macro': '2.1',
   'workflow-api': '2.18',
   'workflow-basic-steps': '2.6',
