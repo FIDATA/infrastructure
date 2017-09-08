@@ -325,6 +325,14 @@ jenkins_password_credentials 'gradle_plugins' do
   action :create
 end
 
+# Chocolatey
+jenkins_secret_text_credentials 'chocolatey' do
+  id 'Chocolatey'
+  description 'Release - Chocolatey'
+  secret node['release_credentials']['chocolatey']['api_key']
+  action :create
+end
+
 # Chef Supermarket
 jenkins_script 'chef_identity' do
   command <<~EOF
@@ -346,14 +354,6 @@ jenkins_script 'chef_identity' do
     chefIdentityDescriptor.save()
   EOF
   action :execute
-end
-
-# Chocolatey
-jenkins_secret_text_credentials 'chocolatey' do
-  id 'Chocolatey'
-  description 'Release - Chocolatey'
-  secret node['release_credentials']['chocolatey']['api_key']
-  action :create
 end
 
 # Manually reload Jenkins configuration from git repository

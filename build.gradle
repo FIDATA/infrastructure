@@ -928,11 +928,11 @@ task('generateRuntimeDataBag') {
           'key': gradlePluginsKey,
           'secret': gradlePluginsSecret,
         ],
-        'chef_id': [
-          'private_key': chefIdPrivateKey.text,
-        ],
         'chocolatey': [
           'api_key': chocolateyAPIKey,
+        ],
+        'chef_id': [
+          'private_key': chefIdPrivateKey.text,
         ],
       ]
     }
