@@ -59,7 +59,7 @@ suites:
     verifier:
       inspec_tests:
         - git: https://github.com/FIDATA/build-environment
-          tag: v1.2.0
+          tag: v1.3.0
   - name: JenkinsMaster-vbox
     includes:
       - UbuntuServer16.04.3+amd64-vbox
