@@ -491,7 +491,7 @@ class GenerateSSHKeyTask extends DefaultTask {
   @TaskAction
   void generate() {
     if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
-      KeyPair kpair = KeyPair.genKeyPair(jsch, keyType, keySize)
+      KeyPair kpair = KeyPair.genKeyPair(JSCH, keyType, keySize)
       kpair.writePrivateKey(privateKeyFile.path)
       kpair.writePublicKey(publicKeyFile.path, email)
       kpair.dispose()
