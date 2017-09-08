@@ -114,6 +114,7 @@ resource "aws_instance" "jenkins_master" {
   vpc_security_group_ids = [
     "${data.aws_security_group.HTTP_S.id}"
   ]
+  key_name = "fidata-main"
   tags {
     Name = "FIDATA Jenkins Master"
   }

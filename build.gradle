@@ -147,6 +147,7 @@ ext.with {
   terraformOutputDir = file('build/terraform')
   encryptedDataBagSecret = file(encryptedDataBagSecret)
   keysDir = file('build/keys')
+  fidataMainSSHPrivateKey = file("$keysDir/fidata-main")
   fidataChefSSHPrivateKey = file("$keysDir/fidata-chef")
   fidataJenkinsSSHPrivateKey = file("$keysDir/fidata-jenkins")
   kitchenSSHPrivateKey = file("$keysDir/kitchen")
@@ -498,6 +499,13 @@ class GenerateSSHKeyTask extends DefaultTask {
   }
 }
 
+task('generateSSHKey-FIDATAMain', type: GenerateSSHKeyTask) {
+  privateKeyFile = fidataMainSSHPrivateKey
+  keyType = sshKeyType
+  keySize = sshKeySize
+  email = fidataMainEmail
+}
+
 task('generateSSHKey-FIDATAChef', type: GenerateSSHKeyTask) {
   privateKeyFile = fidataChefSSHPrivateKey
   keyType = sshKeyType
@@ -561,7 +569,7 @@ task('terraformDestroy-common') {
 
 task('terraformApply-common') {
   group 'Build'
-  dependsOn 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins'
+  dependsOn 'generateSSHKey-FIDATAMain', 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins'
   mustRunAfter 'terraformValidate-common', 'terraformDestroy-common'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   for (f in new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')) {
