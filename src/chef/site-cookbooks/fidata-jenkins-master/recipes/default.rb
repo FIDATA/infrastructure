@@ -299,6 +299,23 @@ end
 
 # Create release credentials
 
+# RubyGems
+jenkins_secret_text_credentials 'rubygems' do
+  id 'RubyGems'
+  description 'Release - RubyGems'
+  secret node['release_credentials']['rubygems']['api_key']
+  action :create
+end
+
+# PyPI
+jenkins_password_credentials 'pypi' do
+  id 'PyPI'
+  description 'Release - PyPI'
+  username node['release_credentials']['pypi']['username']
+  password node['release_credentials']['pypi']['password']
+  action :create
+end
+
 # Gradle Plugins
 jenkins_password_credentials 'gradle_plugins' do
   id 'Gradle Plugins'

@@ -917,6 +917,13 @@ task('generateRuntimeDataBag') {
     }
     property 'ReleaseCredentialsDataBag', {
       dataBags['ReleaseCredentials'] << [
+        'rubygems': [
+          'api_key': rubygemsAPIKey,
+        ],
+        'pypi': [
+          'username': pypiUsername,
+          'password': pypiPassword,
+        ],
         'gradle_plugins': [
           'key': gradlePluginsKey,
           'secret': gradlePluginsSecret,
