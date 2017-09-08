@@ -97,7 +97,7 @@ data "atlas_artifact" "JenkinsMasterAMI" {
   name = "fidata/JenkinsMaster"
   type = "amazon.image"
   metadata {
-    version = "1.1.0"
+    version = "1.2.0"
   }
 }
 
