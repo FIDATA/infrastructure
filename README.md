@@ -87,7 +87,7 @@ Vagrant boxes
 	```
 
 ### Making changes:
-Check code:
+Check code before pushing:
 ```
 gradlew --continue check
 ```
@@ -100,7 +100,6 @@ gradlew --continue check
 3.	[joefitzgerald/packer-windows](https://github.com/joefitzgerald/packer-windows)
 
 4.	[innvent/parcelles](https://github.com/innvent/parcelles)
-
 
 ### Credits (Additional reading)
 1.	Immutable Servers:
