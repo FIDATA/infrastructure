@@ -81,6 +81,12 @@ ext.with {
     }
     it
   }
+  pipenvLogLevelArgs = [].with {
+    if (logLevel <= LogLevel.INFO) {
+      push '--verbose'
+    }
+    it
+  }
   rubyLogLevelArgs = [].with {
     switch (logLevel) {
       case { it <= LogLevel.DEBUG }: push '--debug'
@@ -206,7 +212,8 @@ task('prerequisitesInstall') {
           OperatingSystem.current().windows ?
           ['--python', '3'] :
           ['--three']
-        )
+        ) +
+        pipenvLogLevelArgs
       )
     }
     terraformDirs.each { d ->
@@ -292,7 +299,8 @@ task('prerequisitesUpdate') {
         [
           'pipenv', 'update',
           '--dev'
-        ]
+        ] +
+        pipenvLogLevelArgs
       )
     }
     terraformDirs.each { d ->
