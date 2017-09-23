@@ -71,6 +71,9 @@ end
 home_directory = node['etc']['passwd'][node['fidata']['build-toolkit']['user']]['dir']
 gem_home = "#{home_directory}/.gems"
 directory gem_home do
+  user node['fidata']['build-toolkit']['user']
+  group node['fidata']['build-toolkit']['group']
+  mode '0700'
   action :create
 end
 unless node['platform_family'] == 'windows'
@@ -91,7 +94,10 @@ unless node['platform_family'] == 'windows'
     end
   end
 end
-execute 'bundle config specific_platform true'
+execute 'bundle config specific_platform true' do
+  user node['fidata']['build-toolkit']['user']
+  group node['fidata']['build-toolkit']['group']
+end
 
 python_runtime '3.5' do
   pip_version '9.0.1'
