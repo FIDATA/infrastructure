@@ -34,9 +34,7 @@ node.default['java']['accept_oracle_download_terms'] = true
 node.default['java']['set_etc_environment'] = true
 include_recipe 'java::default'
 
-git_client 'default' do
-  action :install
-end
+git_client 'default'
 
 case node['platform_family']
 when 'debian'
@@ -74,7 +72,6 @@ directory gem_home do
   user node['fidata']['build-toolkit']['user']
   group node['fidata']['build-toolkit']['group']
   mode '0700'
-  action :create
 end
 unless node['platform_family'] == 'windows'
   ruby_block 'Set GEM_HOME in user\'s profile' do
