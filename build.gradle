@@ -158,6 +158,16 @@ ext.with {
   fidataJenkinsSSHPrivateKey = file("$keysDir/fidata-jenkins")
   kitchenSSHPrivateKey = file("$keysDir/kitchen")
   chefIdPrivateKey = file(chefIdPrivateKey)
+  reportsDir = file('build/reports')
+  xmlReportsDir = file("$reportsDir/xml")
+  codenarcXMLOutput = file("$xmlReportsDir/codenarc.xml")
+  checkstyleReportsDir = file("$reportsDir/checkstyle")
+  rubocopCheckstyleOutput = file("$checkstyleReportsDir/rubocop.xml")
+  cookstyleCheckstyleOutput = file("$checkstyleReportsDir/cookstyle.xml")
+  htmlReportsDir = file("$reportsDir/html")
+  codenarcHTMLOutput = file("$htmlReportsDir/codenarc.html")
+  rubocopHTMLOutput = file("$htmlReportsDir/rubocop.html")
+  cookstyleHTMLOutput = file("$htmlReportsDir/cookstyle.html")
 
   terraformDirs = ["$libDir/get_atlas_artifact_metadata_full"]
   terraformDir.eachDir { d ->
@@ -170,7 +180,7 @@ visteg {
   enabled        = (logging.level ?: gradle.startParameter.logLevel) <= LogLevel.INFO
   colouredNodes  = true
   colouredEdges  = true
-  destination    = 'build/reports/visteg.dot'
+  destination    = "$reportsDir/visteg.dot"
   exporter       = 'dot'
   colorscheme    = 'paired12'
   nodeShape      = 'box'
@@ -1245,6 +1255,16 @@ task('codenarc', type: CodeNarc) {
     source f
   }
   configFile = file('config/codenarc/codenarc.groovy')
+  reports {
+    xml {
+      enabled = true
+      destination = codenarcXMLOutput
+    }
+    html {
+      enabled = true
+      destination = codenarcHTMLOutput
+    }
+  }
 }
 
 task('kitchenDiagnose', type: CrossPlatformExec) {
@@ -1269,22 +1289,42 @@ task('kitchenDiagnose', type: CrossPlatformExec) {
 
 task('rubocop', type: CrossPlatformExec) {
   group 'Test'
-  List sourceFiles = [gemfile.path, libDir.path] + new FileNameFinder().getFileNames(chefDir.path, '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/*')
-  outputs.upToDateWhen { false }
+  List<File> sourceFiles = [gemfile, libDir] + (new FileNameFinder().getFileNames(chefDir.path, '**/*.rb', 'cookbooks/**/* site-cookbooks/**/* environments/**/*')).collect { file(it) }
+  for (f in sourceFiles) {
+    inputs.with {
+      if (f.isDirectory()) {
+        files new FileNameFinder().getFileNames(f.path, '**/*.rb')
+      }
+      else {
+        file f
+      }
+    }
+  }
   commandLine(
     [
       'bundle', 'exec'
     ] +
     bundleLogLevelArgs + [
-      'rubocop'
+      'rubocop',
+      '--display-cop-names',
+      '--require', 'rubocop/formatter/checkstyle_formatter',
+      '--format', 'RuboCop::Formatter::CheckstyleFormatter', '--out', rubocopCheckstyleOutput.absolutePath,
+      '--format', 'progress',
+      '--format', 'html', '--out', rubocopHTMLOutput.absolutePath
     ] +
     sourceFiles
   )
+  outputs.file rubocopCheckstyleOutput
+  outputs.file rubocopHTMLOutput
 }
 
 task('foodcritic', type: CrossPlatformExec) {
   group 'Test'
-  outputs.upToDateWhen { false }
+  inputs.with {
+    dir "$chefDir/cookbooks"
+    dir "$chefDir/site-cookbooks"
+    dir "$chefDir/environments"
+  }
   workingDir chefDir
   commandLine(
     [
@@ -1300,16 +1340,23 @@ task('foodcritic', type: CrossPlatformExec) {
 
 task('cookstyle', type: CrossPlatformExec) {
   group 'Test'
-  outputs.upToDateWhen { false }
+  inputs.dir chefDir
   workingDir chefDir
   commandLine(
     [
       'bundle', 'exec'
     ] +
     bundleLogLevelArgs + [
-      'cookstyle'
+      'cookstyle',
+      '--display-cop-names',
+      '--require', 'rubocop/formatter/checkstyle_formatter',
+      '--format', 'RuboCop::Formatter::CheckstyleFormatter', '--out', cookstyleCheckstyleOutput.absolutePath,
+      '--format', 'progress',
+      '--format', 'html', '--out', cookstyleHTMLOutput.absolutePath
     ]
   )
+  outputs.file cookstyleCheckstyleOutput
+  outputs.file cookstyleHTMLOutput
 }
 
 task('check-noSideEffects') {
