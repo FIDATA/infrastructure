@@ -58,7 +58,10 @@ default['jenkins']['master']['plugins'] = {
   'artifactory': '2.12.2',
   'openJDK-native-plugin': '1.1',
   'chef-identity': '1.0.0',
+  'checkstyle': '3.49',
+  'warnings': '4.63',
   'junit': '1.21',
+  'htmlpublisher': '1.14',
   'workflow-aggregator': '2.5',
   'build-pipeline-plugin': '1.5.7.1',
   'delivery-pipeline-plugin': '1.0.5',
@@ -77,7 +80,9 @@ default['jenkins']['master']['plugins'] = {
 
   # Dependencies
   'ace-editor': '1.1',
+  'analysis-core': '1.92',
   'ant': '1.7',
+  'antisamy-markup-formatter': '1.5',
   'authentication-tokens': '1.3',
   'aws-credentials': '1.22',
   'aws-java-sdk': '1.11.119',
@@ -117,7 +122,6 @@ default['jenkins']['master']['plugins'] = {
   'git-server': '1.7',
   'github-api': '1.86',
   'handlebars': '1.1.1',
-  'htmlpublisher': '1.14',
   'icon-shim': '2.0.3',
   'ivy': '1.27.1',
   'jackson2-api': '2.7.3',
