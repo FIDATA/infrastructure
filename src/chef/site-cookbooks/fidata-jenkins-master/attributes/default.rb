@@ -96,6 +96,7 @@ default['jenkins']['master']['plugins'] = {
   'blueocean-git-pipeline': '1.2.4',
   'blueocean-github-pipeline': '1.2.4',
   'blueocean-i18n': '1.2.4',
+  'blueocean-jira': '1.2.4',
   'blueocean-jwt': '1.2.4',
   'blueocean-personalization': '1.2.4',
   'blueocean-pipeline-api-impl': '1.2.4',
