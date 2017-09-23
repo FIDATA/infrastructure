@@ -246,6 +246,16 @@ task('prerequisitesOutdated') {
       workingDir chefDir
       commandLine(
         [
+          'pipenv', 'update', '--dry-run',
+          '--dev'
+        ] +
+        pipenvLogLevelArgs
+      )
+    }
+    exec {
+      workingDir chefDir
+      commandLine(
+        [
           bundleExecutable, 'exec'
         ] +
         bundleLogLevelArgs +
