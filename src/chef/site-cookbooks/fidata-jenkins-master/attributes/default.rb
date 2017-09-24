@@ -49,34 +49,42 @@ default['jenkins']['master']['plugins'] = {
 
   # UX
   'ansicolor': '0.5.2',
+  'dashboard-view': '2.9.11',
   'greenballs': '1.15',
-  'chucknorris': '1.0',
   'html-audio-notifier': '0.4',
+  'chucknorris': '1.0',
 
-  # Primary functions
-  'gradle': '1.27.1',
-  'artifactory': '2.12.2',
-  'openJDK-native-plugin': '1.1',
-  'chef-identity': '1.0.0',
-  'checkstyle': '3.49',
-  'warnings': '4.63',
-  'junit': '1.21',
-  'htmlpublisher': '1.14',
+  # Primary functions - jobs as code
+  'job-dsl': '1.65',
+  'managed-scripts': '1.4',
+  # Primary functions - workflows
   'workflow-aggregator': '2.5',
   'build-pipeline-plugin': '1.5.7.1',
   'delivery-pipeline-plugin': '1.0.5',
   'promoted-builds': '2.29.1',
   'blueocean': '1.2.4',
-  'dashboard-view': '2.9.11',
+  # Primary functions - VCS and ITS
   'github': '1.28.0',
   'github-branch-source': '2.2.3',
   'github-pr-comment-build': '2.0',
+  'violation-comments-to-github': '1.45',
+  'pipeline-github': '1.0',
+  # Primary functions - triggers
   'maven-dependency-update-trigger': '1.5',
+  # Primary functions - build tools
+  'gradle': '1.27.1',
+  'openJDK-native-plugin': '1.1',
+  'chef-identity': '1.0.0',
+  # Primary functions - code quality
+  'checkstyle': '3.49',
+  'warnings': '4.63',
+  'junit': '1.21',
+  'htmlpublisher': '1.14',
+  # Primary functions - binary repository manager
+  'artifactory': '2.12.2',
+  # Primary functions - auxiliary
   'global-build-stats': '1.4',
   'build-timeout': '1.18',
-  'violation-comments-to-github': '1.45',
-  'job-dsl': '1.65',
-  'managed-scripts': '1.4',
 
   # Dependencies
   'ace-editor': '1.1',
@@ -140,7 +148,6 @@ default['jenkins']['master']['plugins'] = {
   'node-iterator-api': '1.5',
   'parameterized-trigger': '2.35.2',
   'pipeline-build-step': '2.5.1',
-  'pipeline-github': '1.0',
   'pipeline-graph-analysis': '1.5',
   'pipeline-input-step': '2.8',
   'pipeline-milestone-step': '1.3.1',
