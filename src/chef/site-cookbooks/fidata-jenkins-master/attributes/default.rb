@@ -42,6 +42,7 @@ default['jenkins']['master']['plugins'] = {
   'mailer': '1.20',
   'github-oauth': '0.27',
   'ec2': '1.36',
+  'windows-slaves': '1.3.1',
   'scm-sync-configuration': '0.0.10',
   'next-build-number': '1.4',
   'support-core': '2.41',
