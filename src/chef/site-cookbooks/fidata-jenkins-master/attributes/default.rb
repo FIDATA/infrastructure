@@ -51,6 +51,7 @@ default['jenkins']['master']['plugins'] = {
   # UX
   'ansicolor': '0.5.2',
   'dashboard-view': '2.9.11',
+  'pegdown-formatter': '1.3',
   'greenballs': '1.15',
   'html-audio-notifier': '0.4',
   'chucknorris': '1.0',
