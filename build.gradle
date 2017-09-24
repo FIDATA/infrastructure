@@ -1251,6 +1251,7 @@ task('codenarc', type: CodeNarc) {
       enabled = true
       destination = codenarcXMLOutput
     }
+    console { enabled = true }
     html {
       enabled = true
       destination = codenarcHTMLOutput
