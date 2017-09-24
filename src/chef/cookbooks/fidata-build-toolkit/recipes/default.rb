@@ -80,7 +80,7 @@ unless node['platform_family'] == 'windows'
       Resource::File.new(filename, run_context).tap do |file|
         file.owner node['fidata']['build-toolkit']['user']
         file.group node['fidata']['build-toolkit']['group']
-        file.mode '0644'
+        file.mode '0600'
         file.run_action :create_if_missing
       end
       Chef::Util::FileEdit.new(filename).tap do |file|

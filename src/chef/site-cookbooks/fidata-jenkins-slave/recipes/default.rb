@@ -23,12 +23,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+directory node['etc']['passwd'][node['fidata']['build-toolkit']['user']]['dir'] do
+  mode '0700'
+end
+
 include_recipe 'fidata-build-toolkit::default'
 
 directory '/srv/jenkins' do
   user node['fidata']['build-toolkit']['user']
   group node['fidata']['build-toolkit']['user']
   recursive true
-  mode '0755'
+  mode '0700'
   action :create
 end
