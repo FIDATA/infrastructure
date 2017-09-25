@@ -426,7 +426,7 @@ ext.with {
 
   jenkinsSlaves = [
     'UbuntuServer16.04.3+amd64': [
-      'version': '0.2.1',
+      'version': '0.3.0',
       'security_groups': ['SSH'] as Set<String>,
       'type_data': [
         'type': 'unix',
