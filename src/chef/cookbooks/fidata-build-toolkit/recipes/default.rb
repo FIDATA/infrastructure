@@ -103,6 +103,13 @@ python_package 'pipenv' do
   python '3.5'
 end
 
+case node['platform_family']
+when 'fedora', 'rhel', 'freebsd', 'debian', 'mac_os_x'
+  include_recipe 'nodejs::default'
+when 'windows'
+  chocolatey_package 'nodejs.install'
+end
+
 include_recipe 'perl::default'
 
 case node['platform_family']
