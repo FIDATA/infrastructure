@@ -40,7 +40,7 @@ GRAPH
     poise-python (~> 1.6)
     poise-ruby (~> 2.3)
     texlive (~> 0.2)
-  fidata-jenkins-master (1.4.0)
+  fidata-jenkins-master (2.0.0)
     apache2 (~> 5.0)
     git (~> 8.0)
     java (~> 1.50)

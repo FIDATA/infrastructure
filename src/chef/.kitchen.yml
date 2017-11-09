@@ -2,7 +2,7 @@
   - name: UbuntuServer16.04.3+amd64-amazon
     driver:
       name: ec2
-      image_id: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.3_amd64', 'amazon.image', '1.0.2')['ami_id'] %>
+      image_id: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.3_amd64', 'amazon.image', '1.0.3')['ami_id'] %>
       region: eu-west-1
       subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
       aws_ssh_key_id: kitchen
@@ -18,7 +18,7 @@
       cachier: machine
       box: fidata/UbuntuServer16.04.3_amd64
       box_url: fidata/UbuntuServer16.04.3_amd64
-      box_version: "0.1.3"
+      box_version: "0.1.4"
       box_check_update: true
       username: ubuntu
       password: ubuntu
