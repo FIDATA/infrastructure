@@ -922,6 +922,9 @@ task('generateRuntimeDataBag') {
         'artifactory': [
           'api_key': fidataJenkinsArtifactoryAPIKey,
         ],
+        'bintray': [
+          'api_key': fidataJenkinsBintrayAPIKey,
+        ],
         'aws_iam': [
           'access_key': terraformOutputs['fidata_jenkins_iam_access_key']['value'],
           'secret_key': terraformOutputs['fidata_jenkins_iam_secret_key']['value'],

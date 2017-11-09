@@ -316,6 +316,15 @@ jenkins_password_credentials 'pypi' do
   action :create
 end
 
+# Bintray
+jenkins_password_credentials 'bintray' do
+  id 'Bintray'
+  description 'Release - Bintray'
+  username node['fidata']['jenkins']['username']
+  password node['fidata']['jenkins']['bintray']['api_key']
+  action :create
+end
+
 # Gradle Plugins
 jenkins_password_credentials 'gradle_plugins' do
   id 'Gradle Plugins'
