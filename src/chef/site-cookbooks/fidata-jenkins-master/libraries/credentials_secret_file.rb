@@ -1,6 +1,6 @@
 #
 # Cookbook:: jenkins
-# HWRP:: jenkins_aws_credentials
+# HWRP:: jenkins_secret_file_credentials
 #
 # Author:: Basil Peace <grv87@yandex.ru>
 #
@@ -23,41 +23,39 @@ require_relative '../../jenkins/libraries/credentials'
 require_relative '_helper'
 
 class Chef
-  class Resource::JenkinsAwsCredentials < Resource::JenkinsCredentials
-    resource_name :jenkins_aws_credentials
+  class Resource::JenkinsSecretFileCredentials < Resource::JenkinsCredentials
+    resource_name :jenkins_secret_file_credentials
 
     # Chef attributes
     identity_attr :description
 
     # Attributes
-    attribute :access_key,
-              kind_of: String,
-              required: true
-    attribute :secret_key,
-              kind_of: String,
-              required: true
     attribute :description,
               kind_of: String,
               name_attribute: true
-    attribute :iam_role_arn,
-              kind_of: String
+    attribute :filename,
+              kind_of: String,
+              required: true
+    attribute :content,
+              kind_of: String,
+              required: true,
+              sensitive: true
   end
 end
 
 class Chef
-  class Provider::JenkinsAwsCredentials < Provider::JenkinsCredentials
+  class Provider::JenkinsSecretFileCredentials < Provider::JenkinsCredentials
     use_inline_resources
-    provides :jenkins_aws_credentials
+    provides :jenkins_secret_file_credentials
 
     def load_current_resource
-      @current_resource ||= Resource::JenkinsAwsCredentials.new(new_resource.name)
+      @current_resource ||= Resource::JenkinsSecretFileCredentials.new(new_resource.name)
 
       super
 
       if current_credentials
-        @current_resource.access_key(current_credentials[:access_key])
-        @current_resource.secret_key(current_credentials[:secret_key])
-        @current_resource.iam_role_arn(current_credentials[:iam_role_arn])
+        @current_resource.filename(current_credentials[:filename])
+        @current_resource.content(current_credentials[:content])
       end
 
       @current_credentials
@@ -67,21 +65,21 @@ class Chef
 
     #
     # @see Chef::Resource::JenkinsCredentials#credentials_groovy
-    # @see https://github.com/jenkinsci/aws-credentials-plugin/blob/master/src/main/java/com/cloudbees/jenkins/plugins/awscredentials/AWSCredentialsImpl.java
+    # @see https://github.com/jenkinsci/plain-credentials-plugin/blob/master/src/main/java/org/jenkinsci/plugins/plaincredentials/impl/FileCredentialsImpl.java
     #
     def credentials_groovy
       <<-EOH.gsub(/ ^{8}/, '')
         import com.cloudbees.plugins.credentials.*
-        import com.cloudbees.jenkins.plugins.awscredentials.*
+        import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl
+        import org.apache.commons.fileupload.FileItem
 
-        credentials = new AWSCredentialsImpl(
+        credentials = new FileCredentialsImpl(
           CredentialsScope.SYSTEM,
           #{convert_to_groovy(new_resource.id)},
-          #{convert_to_groovy(new_resource.access_key)},
-          #{convert_to_groovy(new_resource.secret_key)},
           #{convert_to_groovy(new_resource.description)},
-          #{convert_to_groovy(new_resource.iam_role_arn)},
-          null
+          [getName: { '' }] as FileItem,
+          #{convert_to_groovy(new_resource.filename)},
+          #{convert_to_groovy(new_resource.content)}
         )
       EOH
     end
@@ -91,7 +89,7 @@ class Chef
     #
     def fetch_existing_credentials_groovy(groovy_variable_name)
       <<-EOH.gsub(/ ^{8}/, '')
-        #{credentials_for_id_groovy_extended(new_resource.id, groovy_variable_name, 'com.cloudbees.jenkins.plugins.awscredentials', 'AmazonWebServicesCredentials')}
+        #{credentials_for_id_groovy_extended(new_resource.id, groovy_variable_name, 'org.jenkinsci.plugins.plaincredentials', 'FileCredentials')}
       EOH
     end
 
@@ -102,10 +100,9 @@ class Chef
       <<-EOH.gsub(/ ^{8}/, '')
         #{groovy_variable_name} = [
           id:credentials.id,
-          access_key:credentials.accessKey,
-          secret_key:credentials.secretKey,
           description:credentials.description,
-          iam_role_arn:credentials.iamRoleArn,
+          filename:credentials.fileName,
+          content:credentials.content
         ]
       EOH
     end
@@ -114,18 +111,17 @@ class Chef
     # @see Chef::Resource::JenkinsCredentials#attribute_to_property_map
     #
     def attribute_to_property_map
-      { secret_key: 'credentials.secretKey.plainText' }
+      { content: 'credentials.content.text' }
     end
-
+        
     #
     # @see Chef::Resource::JenkinsCredentials#correct_config?
     #
     def correct_config?
       wanted_credentials = {
-        access_key: new_resource.access_key,
-        secret_key: new_resource.secret_key,
         description: new_resource.description,
-        iam_role_arn: new_resource.iam_role_arn,
+        filename: new_resource.filename,
+        content: new_resource.content,
       }
 
       attribute_to_property_map.keys.each do |key|

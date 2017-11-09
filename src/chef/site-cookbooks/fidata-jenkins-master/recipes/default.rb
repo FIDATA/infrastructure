@@ -279,6 +279,24 @@ jenkins_password_credentials 'github' do
   action :create
 end
 
+# SSH key
+jenkins_private_key_credentials 'ssh' do
+  id 'SSH'
+  description 'FIDATA Jenkins SSH Key'
+  username node['fidata']['jenkins']['username']
+  private_key node['fidata']['jenkins']['private_key'].chomp
+  action :create
+end
+
+# GPG key
+jenkins_secret_file_credentials 'gpg' do
+  id 'GPG'
+  description 'FIDATA Jenkins GPG Key'
+  filename "#{node['fidata']['jenkins']['email']}.asc"
+  content node['fidata']['jenkins']['gpg_key']['private_key']
+  action :create
+end
+
 # Artifactory credentials for artifactory plugin
 jenkins_password_credentials 'artifactory' do
   id 'Artifactory'

@@ -9,18 +9,19 @@ module Jenkins
     # @param [String] groovy_variable_name
     # @return [String]
     #
-    def credentials_for_id_groovy(id, groovy_variable_name)
+    def credentials_for_id_groovy_extended(id, groovy_variable_name, package, type)
       <<-EOH.gsub(/ ^{8}/, '')
         import jenkins.model.*
         import com.cloudbees.plugins.credentials.*
         import com.cloudbees.plugins.credentials.impl.*
         import com.cloudbees.plugins.credentials.common.*
         import com.cloudbees.plugins.credentials.domains.*
+        import #{package}.#{type}
 
         id_matcher = CredentialsMatchers.withId("#{id}")
         available_credentials =
           CredentialsProvider.lookupCredentials(
-            BaseStandardCredentials.class,
+            #{type}.class,
             Jenkins.getInstance(),
             hudson.security.ACL.SYSTEM,
             new SchemeRequirement("ssh")
