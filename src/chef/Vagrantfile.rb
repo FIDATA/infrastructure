@@ -23,7 +23,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-Vagrant.require_version '~> 1.9'
+Vagrant.require_version '~> 2.0'
 
 Vagrant.configure('2') do |config|
   config.vbguest.auto_update = false if Vagrant.has_plugin?('vbguest')

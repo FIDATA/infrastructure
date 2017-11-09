@@ -23,8 +23,9 @@
 source 'https://fidata.jfrog.io/fidata/api/gems/gems'
 
 # CAVEAT: We can't use just any version of Chef gem.
-# Specified version should exist on Omnitruck <>
-gem 'chef', '13.3.42'
+# Specified version should exist on Omnitruck:
+# https://omnitruck.chef.io/stable/chef/versions <>
+gem 'chef', '13.6.4'
 gem 'knife-solo', '~> 0.6'
 gem 'knife-solo_data_bag', '~> 2.1'
 gem 'thor', '~> 0.19'
@@ -33,7 +34,7 @@ gem 'knife-art', '~> 1.0'
 gem 'rubocop', '~> 0.49'
 gem 'cookstyle', '~> 2.1'
 gem 'rubocop-checkstyle_formatter', '~> 0.4'
-gem 'foodcritic', '~> 11.3'
+gem 'foodcritic', '~> 12.1'
 gem 'test-kitchen', '~> 1.17'
 gem 'kitchen-vagrant', '~> 1.2'
 gem 'kitchen-ec2', '~> 1.3'
