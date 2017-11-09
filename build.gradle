@@ -261,6 +261,7 @@ task('prerequisitesOutdated') {
         ] +
         pipenvLogLevelArgs
       )
+      ignoreExitValue true
     }
     exec {
       workingDir chefDir
