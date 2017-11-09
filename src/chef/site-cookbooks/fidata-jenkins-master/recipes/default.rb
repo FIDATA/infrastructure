@@ -521,6 +521,7 @@ node['jenkins']['ec2_cloud']['slaves'].each do |name, slave|
                <<~EOF
                  UnixData(
                    /*rootCommandPrefix*/ '#{type_data['root_сommand_prefix']}',
+                   /*slaveCommandPrefix*/ null,
                    /*sshPort*/ '22'
                  )
                EOF
@@ -559,6 +560,7 @@ node['jenkins']['ec2_cloud']['slaves'].each do |name, slave|
       /*usePrivateDnsName*/ false,
       /*instanceCapStr*/ '#{slave['instance_cap']}',
       /*iamInstanceProfile*/ '',
+      /*deleteRootOnTermination*/ true,
       /*useEphemeralDevices*/ false,
       /*useDedicatedTenancy*/ false,
       /*launchTimeoutStr*/ '',
