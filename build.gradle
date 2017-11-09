@@ -242,6 +242,7 @@ task('prerequisitesInstall') {
 }
 
 task('prerequisitesOutdated') {
+  dependsOn 'dependencyUpdates'
   doLast {
     exec {
       commandLine(
@@ -310,7 +311,7 @@ void berksUpdate() {
 
 task('prerequisitesUpdate') {
   mustRunAfter 'prerequisitesInstall'
-  dependsOn 'dependencyUpdates'
+  dependsOn 'updateLock', 'saveLock', 'dependencyUpdates'
   doLast {
     bundleUpdate()
     berksUpdate()
@@ -344,7 +345,10 @@ afterEvaluate {
   tasks.each { t ->
     if (!(t.name =~ /^prerequisites/)) {
       t.mustRunAfter 'prerequisitesInstall'
-      if (t.name != 'dependencyUpdates') {
+      if (t.name != 'updateLock' && t.name != 'saveLock') {
+        t.mustRunAfter 'updateLock', 'saveLock'
+      }
+      if (t.name != 'dependencyUpdates' && t.name != 'updateLock' && t.name != 'saveLock') {
         t.mustRunAfter 'prerequisitesUpdate'
       }
     }
