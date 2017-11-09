@@ -319,7 +319,7 @@ task('prerequisitesUpdate') {
       workingDir chefDir
       commandLine(
         [
-          'pipenv', 'update',
+          'pipenv', '--update', 'update',
           '--dev'
         ] +
         pipenvLogLevelArgs
