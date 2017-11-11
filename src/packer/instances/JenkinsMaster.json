@@ -40,41 +40,39 @@
 		"atlas_token": "",
 		"encrypted_data_bag_secret": ""
 	},
-	"builders": [
-		{
-			"name": "production",
-			"access_key": "{{ user `aws_access_key` }}",
-			"secret_key": "{{ user `aws_secret_key` }}",
-			"ami_name": "{{ user `name` }}-{{ timestamp }}",
-			"type": "amazon-ebs",
-			"source_ami_filter": {
-				"filters": {
-					"name": "{{ user `base_image` }}",
-					"tag:architecture": "{{ user `base_architecture` }}"
-				},
-				"owners": [
-					"880042334380"
-				],
-				"most_recent": true
+	"builders": [{
+		"name": "production",
+		"access_key": "{{ user `aws_access_key` }}",
+		"secret_key": "{{ user `aws_secret_key` }}",
+		"ami_name": "{{ user `name` }}-{{ timestamp }}",
+		"type": "amazon-ebs",
+		"source_ami_filter": {
+			"filters": {
+				"name": "{{ user `base_image` }}",
+				"tag:architecture": "{{ user `base_architecture` }}"
 			},
-			"region": "{{ user `aws_region` }}",
-			"vpc_id": "{{ user `aws_vpc_id` }}",
-			"subnet_id": "{{ user `aws_subnet_id` }}",
-			"instance_type": "{{ user `aws_instance_type` }}",
-			"launch_block_device_mappings": [
-				{
-					"delete_on_termination": true,
-					"volume_type": "gp2",
-					"device_name": "/dev/sda1",
-					"volume_size": "{{ user `aws_volume_size` }}"
-				}
+			"owners": [
+				"880042334380"
 			],
-			"communicator": "ssh",
-			"ssh_port": "{{ user `ssh_port` }}",
-			"ssh_username": "{{ user `ssh_username` }}",
-			"ssh_timeout": "{{ user `ssh_timeout` }}"
-		}
-	],
+			"most_recent": true
+		},
+		"region": "{{ user `aws_region` }}",
+		"vpc_id": "{{ user `aws_vpc_id` }}",
+		"subnet_id": "{{ user `aws_subnet_id` }}",
+		"instance_type": "{{ user `aws_instance_type` }}",
+		"launch_block_device_mappings": [
+			{
+				"delete_on_termination": true,
+				"volume_type": "gp2",
+				"device_name": "/dev/sda1",
+				"volume_size": "{{ user `aws_volume_size` }}"
+			}
+		],
+		"communicator": "ssh",
+		"ssh_port": "{{ user `ssh_port` }}",
+		"ssh_username": "{{ user `ssh_username` }}",
+		"ssh_timeout": "{{ user `ssh_timeout` }}"
+	}],
 	"provisioners": [
 		{
 			"type": "chef-solo",
