@@ -18,7 +18,7 @@
       cachier: machine
       box: fidata/UbuntuServer16.04.3_amd64
       box_url: fidata/UbuntuServer16.04.3_amd64
-      bov_version: "0.1.2"
+      box_version: "0.1.3"
       box_check_update: true
       username: ubuntu
       password: ubuntu
