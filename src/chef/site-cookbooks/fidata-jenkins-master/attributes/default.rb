@@ -65,7 +65,7 @@ default['jenkins']['master']['plugins'] = {
   'delivery-pipeline-plugin': '1.0.7',
   'promoted-builds': '2.31',
   'blueocean': '1.3.2',
-  # Primary functions - VCS and ITS
+  # Primary functions - VCSs and ITSs
   'github': '1.28.1',
   'github-branch-source': '2.3.1',
   'github-pr-comment-build': '2.0',
@@ -75,15 +75,18 @@ default['jenkins']['master']['plugins'] = {
   'maven-dependency-update-trigger': '1.5',
   # Primary functions - build tools
   'gradle': '1.28',
+  # Primary functions - SDKs
   'openJDK-native-plugin': '1.1',
-  'chef-identity': '1.0.0',
+  # Primary functions - documentation
+  'javadoc': '1.4',
   # Primary functions - code quality
   'checkstyle': '3.49',
   'warnings': '4.63',
   'junit': '1.21',
   'htmlpublisher': '1.14',
-  # Primary functions - binary repository manager
+  # Primary functions - releases
   'artifactory': '2.13.1',
+  'chef-identity': '1.0.0',
   # Primary functions - auxiliary
   'global-build-stats': '1.5',
   'build-timeout': '1.19',
@@ -137,7 +140,6 @@ default['jenkins']['master']['plugins'] = {
   'icon-shim': '2.0.3',
   'ivy': '1.28',
   'jackson2-api': '2.8.7.0',
-  'javadoc': '1.4',
   'jira': '2.5',
   'jquery': '1.12.4-0',
   'jquery-detached': '1.2.1',
