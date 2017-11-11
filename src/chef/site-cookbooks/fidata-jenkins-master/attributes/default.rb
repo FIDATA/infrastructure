@@ -192,3 +192,5 @@ default['jenkins']['master']['scm_sync_configuration'].tap do |scm_sync_configur
 end
 
 default['jenkins']['master']['security'] = 'github'
+
+default['jenkins']['master']['endpoint'] = "http://#{node['jenkins']['master']['host']}:#{node['jenkins']['master']['port']}"
