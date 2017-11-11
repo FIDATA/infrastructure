@@ -113,7 +113,7 @@ class Chef
     def attribute_to_property_map
       { content: 'credentials.content.text' }
     end
-        
+
     #
     # @see Chef::Resource::JenkinsCredentials#correct_config?
     #
