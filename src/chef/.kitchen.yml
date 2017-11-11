@@ -1,4 +1,5 @@
-<% require_relative '../lib/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full' %>platforms:
+# <% require_relative '../lib/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full' %>
+platforms:
   - name: UbuntuServer16.04.3+amd64-amazon
     driver:
       name: ec2
