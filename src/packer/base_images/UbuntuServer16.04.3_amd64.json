@@ -54,10 +54,11 @@
 			"guest_additions_mode": "upload",
 			"guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
 			"boot_wait": "10s",
+			"communicator": "ssh",
 			"ssh_port": "{{ user `ssh_port` }}",
 			"ssh_username": "{{ user `ssh_username` }}",
 			"ssh_password": "ubuntu",
-			"ssh_wait_timeout": "{{ user `ssh_timeout` }}",
+			"ssh_timeout": "{{ user `ssh_timeout` }}",
 			"shutdown_command": "echo 'ubuntu' | sudo -S shutdown -P now",
 			"virtualbox_version_file": ".vbox_version"
 		},
