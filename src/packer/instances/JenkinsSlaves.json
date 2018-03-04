@@ -110,7 +110,7 @@
 				"artifact": "fidata/JenkinsSlave-{{ build_name }}",
 				"artifact_type": "amazon.image",
 				"metadata": {
-					"version": "0.3.1"
+					"version": "0.3.2"
 				}
 			},
 			{
