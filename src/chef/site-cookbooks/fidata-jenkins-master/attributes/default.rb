@@ -35,7 +35,7 @@ default['jenkins']['master']['protocol'] = 'http'
 default['jenkins']['master']['server_name'] = node['fqdn']
 default['jenkins']['master']['prefix'] = '/'
 
-default['jenkins']['master']['channel'] = 'stable-2.73'
+default['jenkins']['master']['channel'] = 'stable-2.89'
 default['jenkins']['master']['plugins'] = {
   # Required plugins
   # System & Maintenance
