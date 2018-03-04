@@ -61,7 +61,6 @@ default['jenkins']['master']['plugins'] = {
   'managed-scripts': '1.4',
   # Primary functions - workflows
   'workflow-aggregator': '2.5',
-  'build-pipeline-plugin': '1.5.7.1',
   'delivery-pipeline-plugin': '1.0.7',
   'promoted-builds': '2.31',
   'blueocean': '1.3.2',
