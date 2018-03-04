@@ -16,11 +16,11 @@ This repository contains:
 
 ### Prerequisites:
 *	Java (JRE or JDK) >= 8
-*	VirtualBox (5.1.26)
+*	VirtualBox (5.2.8)
 *	Packer
 *	Vagrant and vagrant-cachier plugin
 *	Terraform (~> 0.10)
-*	Ruby & Bundler (~> 1.14, tested with 1.15.4)
+*	Ruby & Bundler (~> 1.14, gems locked with 1.16.0)
 *	Python 3 & [Pipenv](http://pipenv.org/)
 
 All other build tools (gems, packages, plugins and cookbooks) are

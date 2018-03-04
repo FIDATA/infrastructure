@@ -35,7 +35,7 @@ supports         'ubuntu', '>= 16.04'
 chef_version     '~> 13.3' if respond_to?(:chef_version)
 depends          'java', '~> 1.50'
 depends          'apache2', '~> 5.0'
-depends          'jenkins', '~> 5.0'
+depends          'jenkins', '~> 6.0'
 depends          'git', '~> 8.0'
 depends          'ssh', '~> 0.10'
 depends          'octokit', '~> 0.1'
