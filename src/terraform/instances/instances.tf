@@ -148,7 +148,7 @@ resource "cloudflare_record" "ajaxhttpheaders" {
   domain = "fidata.org"
   name = "ajaxhttpheaders"
   type = "CNAME"
-  value = "ghs.googlehosted.com." 
+  value = "ghs.googlehosted.com."
   proxied = true
 }
 
