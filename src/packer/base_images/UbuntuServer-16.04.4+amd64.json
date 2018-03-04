@@ -1,7 +1,7 @@
 {
 	"_license_notice": [
-		"Packer template for Ubuntu Server 16.04.3 amd64 base image",
-		"Copyright © 2015-2017  Basil Peace",
+		"Packer template for Ubuntu Server 16.04.4 amd64 base image",
+		"Copyright © 2015-2018  Basil Peace",
 		"",
 		"This file is part of FIDATA Infrastructure.",
 		"",
@@ -20,10 +20,12 @@
 		"permissions and limitations under the License."
 	],
 	"variables": {
-		"base_name": "UbuntuServer16.04.3",
+		"base_name": "UbuntuServer-16.04.4",
+		"version": "0.1.0",
 		"architecture": "amd64",
 		"aws_region": "eu-west-1",
-		"aws_source_ami": "ami-add175d4",
+		"source_kernel_version": "0.1.0",
+		"aws_source_ami": "ami-f90a4880",
 		"aws_vpc_id": "vpc-7c3f9d1b",
 		"aws_subnet_id": "subnet-3615b351",
 		"aws_instance_type": "t2.nano",
@@ -36,17 +38,16 @@
 		"manifest_output_dir": ".",
 		"aws_access_key": "",
 		"aws_secret_key": "",
-		"atlas_token": "",
 		"vagrant_cloud_token": ""
 	},
 	"builders": [
 		{
 			"name": "vbox",
-			"vm_name": "{{ user `base_name` }}_{{ user `architecture` }}",
+			"vm_name": "{{ user `base_name` }}-{{ user `version` }}_{{ user `architecture` }}",
 			"type": "virtualbox-ovf",
-			"source_path": "{{ user `vbox_output_dir` }}/kernel-{{ user `base_name` }}_{{ user `architecture` }}_{{ build_name }}/kernel-{{ user `base_name` }}_{{ user `architecture` }}.ova",
+			"source_path": "{{ user `vbox_output_dir` }}/kernel-{{ user `base_name` }}-{{ user `source_kernel_version` }}+{{ user `architecture` }}+{{ build_name }}/kernel-{{ user `base_name` }}-{{ user `source_kernel_version` }}_{{ user `architecture` }}.ova",
 			"format": "ovf",
-			"output_directory": "{{ user `vbox_output_dir` }}/{{ user `base_name` }}_{{ user `architecture` }}_{{ build_name }}",
+			"output_directory": "{{ user `vbox_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}",
 			"headless": "true",
 			"vboxmanage": [
 				[ "modifyvm", "{{ .Name }}", "--videocap", "off" ]
@@ -66,8 +67,9 @@
 			"name": "amazon",
 			"access_key": "{{ user `aws_access_key` }}",
 			"secret_key": "{{ user `aws_secret_key` }}",
-			"ami_name": "{{ user `base_name` }}-{{ timestamp }}_{{ user `architecture` }}",
+			"ami_name": "{{ user `base_name` }}-{{ user `version` }}_{{ user `architecture` }}",
 			"tags": {
+				"version": "{{ user `version` }}",
 				"architecture": "amd64"
 			},
 			"type": "amazon-ebs",
@@ -175,7 +177,7 @@
 				"only": [ "vbox" ],
 				"type": "vagrant",
 				"keep_input_artifact": false,
-				"output": "{{ user `vagrant_output_dir` }}/{{ user `base_name` }}-{{ timestamp }}_{{ user `architecture` }}_{{ build_name }}.box"
+				"output": "{{ user `vagrant_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}_{{ user `architecture` }}_{{ build_name }}.box"
 			},
 			{
 				"only": [ "vbox" ],
@@ -183,21 +185,11 @@
 				"keep_input_artifact": false,
 				"access_token": "{{ user `vagrant_cloud_token` }}",
 				"box_tag": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"version": "0.1.4"
-			},
-			{
-				"only": [ "amazon" ],
-				"type": "atlas",
-				"token": "{{ user `atlas_token` }}",
-				"artifact": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"artifact_type": "amazon.image",
-				"metadata": {
-					"version": "1.0.3"
-				}
+				"version": "{{ user `version` }}"
 			},
 			{
 				"type": "manifest",
-				"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}_{{ user `architecture` }}_{{ build_name }}.json"
+				"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}-{{ timestamp }}.json"
 			}
 		]
 	]

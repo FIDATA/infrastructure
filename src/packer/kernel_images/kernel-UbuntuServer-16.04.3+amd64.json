@@ -1,7 +1,7 @@
 {
 	"_license_notice": [
-		"Packer template for Ubuntu Server 16.04.4 amd64 kernel image",
-		"Copyright © 2015-2018  Basil Peace",
+		"Packer template for Ubuntu Server 16.04.3 amd64 kernel image",
+		"Copyright © 2015-2017  Basil Peace",
 		"",
 		"This file is part of FIDATA Infrastructure.",
 		"",
@@ -20,9 +20,10 @@
 		"permissions and limitations under the License."
 	],
 	"variables": {
-		"base_name": "kernel-UbuntuServer16.04.4",
+		"base_name": "kernel-UbuntuServer-16.04.3",
+		"version": "0.1.0",
 		"architecture": "amd64",
-		"hostname": "UbuntuServer16.04.4-amd64",
+		"hostname": "UbuntuServer-16.04.3-amd64",
 		"headless": "false",
 		"cpus": "1",
 		"cpuexecutioncap": "40",
@@ -38,14 +39,14 @@
 	},
 	"builders": [{
 		"name": "vbox",
-		"vm_name": "{{ user `base_name` }}_{{ user `architecture` }}",
+		"vm_name": "{{ user `base_name` }}-{{ user `version` }}_{{ user `architecture` }}",
 		"type": "virtualbox-iso",
 		"format": "ova",
-		"output_directory": "{{ user `vbox_output_dir` }}/{{ user `base_name` }}_{{ user `architecture` }}_{{ build_name }}",
+		"output_directory": "{{ user `vbox_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}",
 		"guest_os_type": "Ubuntu_64",
-		"iso_url": "http://releases.ubuntu.com/16.04.4/ubuntu-16.04.4-server-amd64.iso",
+		"iso_url": "http://releases.ubuntu.com/16.04.3/ubuntu-16.04.3-server-amd64.iso",
 		"iso_checksum_type": "sha256",
-		"iso_checksum": "0a03608988cfd2e50567990dc8be96fb3c501e198e2e6efcb846d89efc7b89f2",
+		"iso_checksum": "a06cd926f5855d4f21fb4bc9978a35312f815fbda0d0ef7fdc846861f4fc4600",
 		"headless": "{{ user `headless` }}",
 		"hard_drive_interface": "sata",
 		"disk_size": "{{user `disk_size` }}",
@@ -117,7 +118,7 @@
 	"post-processors": [
 		{
 			"type": "manifest",
-			"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}_{{ user `architecture` }}_{{ build_name }}.json"
+			"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}-{{ timestamp }}.json"
 		}
 	]
 }

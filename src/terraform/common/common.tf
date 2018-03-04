@@ -28,9 +28,6 @@ variable "lib_dir" {
 variable "keys_dir" {
   type = "string"
 }
-variable "atlas_token" {
-  type = "string"
-}
 variable "aws_access_key" {
   type = "string"
 }

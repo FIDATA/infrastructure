@@ -21,9 +21,11 @@
 	],
 	"variables": {
 		"name": "JenkinsMaster",
-		"base_image": "UbuntuServer16.04.4-*",
+		"version": "4.0.0",
+		"base_image": "UbuntuServer-16.04.4-*",
 		"base_architecture": "amd64",
 		"aws_region": "eu-west-1",
+		"source_version": "0.1.0",
 		"aws_vpc_id": "vpc-7c3f9d1b",
 		"aws_subnet_id": "subnet-3615b351",
 		"aws_instance_type": "t2.small",
@@ -37,24 +39,26 @@
 		"manifest_output_dir": ".",
 		"aws_access_key": "",
 		"aws_secret_key": "",
-		"atlas_token": "",
 		"encrypted_data_bag_secret": ""
 	},
 	"builders": [{
 		"name": "production",
 		"access_key": "{{ user `aws_access_key` }}",
 		"secret_key": "{{ user `aws_secret_key` }}",
-		"ami_name": "{{ user `name` }}-{{ timestamp }}",
+		"ami_name": "{{ user `name` }}-{{ build_name }}-{{ user `version` }}",
 		"type": "amazon-ebs",
+		"tags": {
+			"version": "{{ user `version` }}"
+		},
 		"source_ami_filter": {
 			"filters": {
 				"name": "{{ user `base_image` }}",
+				"tag:version": "{{ user `source_version` }}",
 				"tag:architecture": "{{ user `base_architecture` }}"
 			},
 			"owners": [
 				"880042334380"
-			],
-			"most_recent": true
+			]
 		},
 		"region": "{{ user `aws_region` }}",
 		"vpc_id": "{{ user `aws_vpc_id` }}",
@@ -105,20 +109,9 @@
 		}
 	],
 	"post-processors": [
-		[
-			{
-				"type": "atlas",
-				"token": "{{ user `atlas_token` }}",
-				"artifact": "fidata/{{ user `name` }}",
-				"artifact_type": "amazon.image",
-				"metadata": {
-					"version": "4.0.0"
-				}
-			},
-			{
-				"type": "manifest",
-				"output": "{{ user `manifest_output_dir` }}/{{ user `name` }}-{{ build_name }}.json"
-			}
-		]
+		{
+			"type": "manifest",
+			"output": "{{ user `manifest_output_dir` }}/{{ user `name` }}-{{ build_name }}-{{ user `version` }}-{{ timestamp }}.json"
+		}
 	]
 }

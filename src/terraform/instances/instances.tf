@@ -22,9 +22,6 @@ terraform {
 
 # Variables
 
-variable "atlas_token" {
-  type = "string"
-}
 variable "aws_access_key" {
   type = "string"
 }
@@ -39,11 +36,6 @@ variable "cloudflare_token" {
 }
 
 # Providers
-
-provider "atlas" {
-  version = "~> 0.1"
-  token = "${var.atlas_token}"
-}
 
 provider "aws" {
   version = "~> 0.1"
@@ -93,18 +85,22 @@ data "aws_security_group" "HTTP_S" {
 
 # Immutable AMIs
 
-data "atlas_artifact" "JenkinsMasterAMI" {
-  name = "fidata/JenkinsMaster"
-  type = "amazon.image"
-  metadata {
-    version = "4.0.0"
+data "aws_ami" "JenkinsMaster" {
+  filter {
+    name   = "name"
+    values = ["JenkinsMaster-production-*"]
   }
+  filter {
+    name   = "tag:version"
+    values = ["4.0.0"]
+  }
+  owners     = ["self"]
 }
 
 # Instances
 
 resource "aws_instance" "jenkins_master" {
-  ami = "${data.atlas_artifact.JenkinsMasterAMI.metadata_full.region-eu-west-1}"
+  ami = "${data.aws_ami.JenkinsMaster.metadata_full.region-eu-west-1}"
   subnet_id = "${data.aws_subnet.fidata.id}"
   instance_type = "t2.small"
   root_block_device {

@@ -30,6 +30,7 @@ buildscript {
   }
   dependencies {
     classpath 'gradle.plugin.fidata.org:gradle-packer-plugin:2.4.0'
+    classpath 'com.amazonaws:aws-java-sdk-ec2:1.11.289'
     classpath 'org.apache.commons:commons-exec:1.3'
     classpath 'com.jcraft:jsch:0.1.54'
   }
@@ -65,6 +66,13 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import org.apache.commons.exec.*
 import com.jcraft.jsch.*
+import org.apache.commons.io.filefilter.DirectoryFileFilter
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
+import com.amazonaws.auth.AWSStaticCredentialsProvider
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.Filter
+import com.amazonaws.services.ec2.model.Image
 
 task wrapper(type: Wrapper) {
   gradleVersion = '4.6'
@@ -168,10 +176,7 @@ ext.with {
   rubocopHTMLOutput = file("$htmlReportsDir/rubocop.html")
   cookstyleHTMLOutput = file("$htmlReportsDir/cookstyle.html")
 
-  terraformDirs = ["$libDir/get_atlas_artifact_metadata_full"]
-  terraformDir.eachDir { d ->
-    terraformDirs << d
-  }
+  terraformDirs = Arrays.asList(terraformDir.listFiles((FileFilter)DirectoryFileFilter.DIRECTORY))
 }
 
 visteg {
@@ -405,7 +410,6 @@ ext.with {
     'CHEF_VERSION': chefVersion,
     'AWS_ACCESS_KEY_ID': awsAccessKey,
     'AWS_SECRET_ACCESS_KEY': awsSecretKey,
-    'ATLAS_TOKEN': atlasToken,
     'KITCHEN_SSH_KEY': kitchenSSHPrivateKey.absolutePath,
     'ENCRYPTED_DATA_BAG_SECRET': encryptedDataBagSecret.absolutePath,
   ]
@@ -415,7 +419,6 @@ ext.with {
     'keys_dir': keysDir.absolutePath,
     'aws_access_key': awsAccessKey,
     'aws_secret_key': awsSecretKey,
-    'atlas_token': atlasToken,
     'cloudflare_email': cloudflareEmail,
     'cloudflare_token': cloudflareToken,
   ]
@@ -431,7 +434,7 @@ ext.with {
   ]
 
   jenkinsSlaves = [
-    'UbuntuServer16.04.4+amd64': [
+    'UbuntuServer-16.04.4+amd64': [
       'version': '0.3.2',
       'security_groups': ['SSH'] as Set<String>,
       'type_data': [
@@ -455,28 +458,30 @@ ext.with {
     'JenkinsEC2Cloud': [:],
     'ReleaseCredentials': [:],
   ]
+
+  ec2 = null
 }
 
-Map getAtlasArtifactMetadataFull(name, type, version) {
-  new ByteArrayOutputStream().withStream { os ->
-    exec {
-      environment([
-        'ATLAS_TOKEN': atlasToken
-      ])
-      commandLine([
-        bundleExecutable, 'exec',
-        'ruby'
-      ] +
-      rubyLogLevelArgs +
-      [
-        '--',
-        "$libDir/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full.rb",
-        'get',
-        name, type, version
-      ])
-      standardOutput = os
-    }
-    new JsonSlurper().parseText(os.toString())
+String findAMI(String name, String version) {
+  ec2 = ec2 ?: AmazonEC2ClientBuilder.standard()
+    .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(awsAccessKey, awsSecretKey)))
+    .withRegion('eu-west-1')
+    .build()
+  List<Image> result = ec2.describeImages(new DescribeImagesRequest()
+    .withFilters(
+      new Filter('name', [name]),
+      new Filter('tag:version', [version])
+    )
+    .withOwners('880042334380')
+  ).images
+  if (result.size() == 0) {
+    logger.error(sprintf('findAMI: Can\'t find image with name: %s, version: %s', [name, version]))
+  }
+  else if (result.size() > 1) {
+    logger.error(sprintf('findAMI: Too many images found with name: %s, version: %s', [name, version]))
+  }
+  else {
+    return result[0].imageId
   }
 }
 
@@ -672,30 +677,29 @@ packer {
     'manifest_output_dir': manifestOutputDir,
     'aws_access_key': awsAccessKey,
     'aws_secret_key': awsSecretKey,
-    'atlas_token': atlasToken,
     'vagrant_cloud_token': vagrantCloudToken,
     'encrypted_data_bag_secret': encryptedDataBagSecret,
   ]
   // Kernel images
-  template 'src/packer/kernel_images/kernel-UbuntuServer16.04.4_amd64.json'
+  template 'src/packer/kernel_images/kernel-UbuntuServer-16.04.4+amd64.json'
 
   // Base images
-  template 'src/packer/base_images/UbuntuServer16.04.4_amd64.json'
+  template 'src/packer/base_images/UbuntuServer-16.04.4+amd64.json'
 
   // Instances
   template 'src/packer/instances/JenkinsMaster.json'
   template 'src/packer/instances/JenkinsSlaves.json'
 }
 
-tasks['build-kernel-UbuntuServer16.04.4_amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.4_amd64-vbox'].dependsOn 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.4_amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer16.04.4_amd64-vbox'
-tasks['build-UbuntuServer16.04.4_amd64-amazon'].dependsOn 'createManifestOutputDir'
-tasks['build-UbuntuServer16.04.4_amd64'].dependsOn 'createManifestOutputDir'
+tasks['build-kernel-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer-16.04.4+amd64-vbox'
+tasks['build-UbuntuServer-16.04.4+amd64-amazon'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64'].dependsOn 'createManifestOutputDir'
 
 task('clean-base') {
   group 'Build'
-  dependsOn 'clean-UbuntuServer16.04.4_amd64'
+  dependsOn 'clean-UbuntuServer-16.04.4+amd64'
 }
 
 task('clean') {
@@ -704,17 +708,17 @@ task('clean') {
 
 task('build-base-vbox') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.4_amd64-vbox'
+  dependsOn 'build-UbuntuServer-16.04.4+amd64-vbox'
 }
 
 task('build-base-amazon') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.4_amd64-amazon'
+  dependsOn 'build-UbuntuServer-16.04.4+amd64-amazon'
 }
 
 task('build-base') {
   group 'Build'
-  dependsOn 'build-UbuntuServer16.04.4_amd64'
+  dependsOn 'build-UbuntuServer-16.04.4+amd64'
 }
 
 task('berksUpdate') {
@@ -940,7 +944,7 @@ task('generateRuntimeDataBag') {
     }
     property 'JenkinsEC2CloudDataBag', {
       for (s in jenkinsSlaves) {
-        s.value['ami'] = getAtlasArtifactMetadataFull("fidata/JenkinsSlave-${s.key.replace('+', '_')}", 'amazon.image', s.value['version'])['ami_id']
+        s.value['ami'] = findAMI("JenkinsSlave-${s.key.replace('+', '_')}-*".toString(), s.value['version'].toString())
       }
       dataBags['JenkinsEC2Cloud'] << [
         'region': 'eu-west-1',
@@ -1004,7 +1008,7 @@ task('generateRuntimeDataBag') {
 task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
-  mustRunAfter 'build-UbuntuServer16.04.4_amd64-vbox'
+  mustRunAfter 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1026,7 +1030,7 @@ task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
 task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
-  mustRunAfter 'build-UbuntuServer16.04.4_amd64-amazon', 'build-UbuntuServer16.04.4_amd64'
+  mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1048,7 +1052,7 @@ task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
 task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformOutput-common', 'generateRuntimeDataBag'
-  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.4_amd64-vbox'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1070,7 +1074,7 @@ task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
 task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag'
-  mustRunAfter 'berksUpdate', 'build-UbuntuServer16.04.4_amd64-amazon', 'build-UbuntuServer16.04.4_amd64'
+  mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1183,7 +1187,7 @@ task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 tasks['build-JenkinsMaster'].with {
   dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
-  mustRunAfter 'build-UbuntuServer16.04.4_amd64-amazon', 'build-UbuntuServer16.04.4_amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
+  mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
 }
 
 task('terraformValidate-instances', type: Exec) {

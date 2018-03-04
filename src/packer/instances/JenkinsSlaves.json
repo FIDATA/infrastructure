@@ -20,6 +20,7 @@
 		"permissions and limitations under the License."
 	],
 	"variables": {
+		"version": "0.3.2",
 		"aws_region": "eu-west-1",
 		"aws_vpc_id": "vpc-7c3f9d1b",
 		"aws_subnet_id": "subnet-3615b351",
@@ -34,25 +35,28 @@
 		"manifest_output_dir": ".",
 		"aws_access_key": "",
 		"aws_secret_key": "",
-		"atlas_token": "",
 		"encrypted_data_bag_secret": ""
 	},
 	"builders": [
 		{
-			"name": "UbuntuServer16.04.4_amd64",
+			"name": "UbuntuServer-16.04.4+amd64",
 			"access_key": "{{ user `aws_access_key` }}",
 			"secret_key": "{{ user `aws_secret_key` }}",
-			"ami_name": "JenkinsSlave-UbuntuServer16.04.4-{{ timestamp }}_amd64",
+			"ami_name": "JenkinsSlave-UbuntuServer-16.04.4_amd64-{{ user `version` }}",
 			"type": "amazon-ebs",
+			"tags": {
+				"version": "{{ user `version` }}",
+				"architecture": "amd64"
+			},
 			"source_ami_filter": {
 				"filters": {
-					"name": "UbuntuServer16.04.4-*",
+					"name": "UbuntuServer-16.04.4-*",
+					"tag:version": "0.1.0",
 					"tag:architecture": "amd64"
 				},
 				"owners": [
 					"880042334380"
-				],
-				"most_recent": true
+				]
 			},
 			"region": "{{ user `aws_region` }}",
 			"vpc_id": "{{ user `aws_vpc_id` }}",
@@ -89,7 +93,7 @@
 		},
 		{
 			"only": [
-				"UbuntuServer16.04.4_amd64"
+				"UbuntuServer-16.04.4+amd64"
 			],
 			"type": "shell",
 			"environment_vars": [
@@ -103,20 +107,9 @@
 		}
 	],
 	"post-processors": [
-		[
-			{
-				"type": "atlas",
-				"token": "{{ user `atlas_token` }}",
-				"artifact": "fidata/JenkinsSlave-{{ build_name }}",
-				"artifact_type": "amazon.image",
-				"metadata": {
-					"version": "0.3.2"
-				}
-			},
-			{
-				"type": "manifest",
-				"output": "{{ user `manifest_output_dir` }}/JenkinsSlave-{{ build_name }}.json"
-			}
-		]
+		{
+			"type": "manifest",
+			"output": "{{ user `manifest_output_dir` }}/JenkinsSlave-{{ build_name }}-{{ user `version` }}-{{ timestamp }}.json"
+		}
 	]
 }

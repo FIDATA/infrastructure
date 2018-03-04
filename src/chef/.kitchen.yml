@@ -15,13 +15,15 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# <% require_relative '../lib/get_atlas_artifact_metadata_full/get_atlas_artifact_metadata_full' %>
 platforms:
-  - name: UbuntuServer16.04.4+amd64-amazon
+  - name: UbuntuServer-16.04.4+amd64-amazon
     driver:
       name: ec2
-      image_id: <%= get_atlas_artifact_metadata_full('fidata/UbuntuServer16.04.4_amd64', 'amazon.image', '0.1.0')['ami_id'] %>
+      image_search:
+        name: UbuntuServer-16.04.4-*
+        "tag:version": "0.1.0"
+        "tag:architecture": amd64
+        owner-id: "880042334380"
       region: eu-west-1
       subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
       aws_ssh_key_id: kitchen
@@ -31,12 +33,12 @@ platforms:
       no-host-key-verify: true
       connection_timeout: 30
       keepalive: false
-  - name: UbuntuServer16.04.4+amd64-vbox
+  - name: UbuntuServer-16.04.4+amd64-vbox
     driver:
       name: vagrant
       cachier: machine
-      box: fidata/UbuntuServer16.04.4_amd64
-      box_url: fidata/UbuntuServer16.04.4_amd64
+      box: fidata/UbuntuServer-16.04.4_amd64
+      box_url: fidata/UbuntuServer-16.04.4_amd64
       box_version: "0.1.0"
       box_check_update: true
       username: ubuntu
@@ -59,7 +61,7 @@ verifier:
 suites:
   - name: BuildToolset
     includes:
-      - UbuntuServer16.04.4+amd64-amazon
+      - UbuntuServer-16.04.4+amd64-amazon
     driver:
       instance_type: t2.medium
       block_device_mappings:
@@ -81,7 +83,7 @@ suites:
           tag: v1.4.0
   - name: JenkinsMaster-vbox
     includes:
-      - UbuntuServer16.04.4+amd64-vbox
+      - UbuntuServer-16.04.4+amd64-vbox
     driver:
       vm_hostname: JenkinsMaster
       network:
@@ -99,7 +101,7 @@ suites:
       - recipe[fidata-jenkins-master::default]
   - name: JenkinsMaster-amazon
     includes:
-      - UbuntuServer16.04.4+amd64-amazon
+      - UbuntuServer-16.04.4+amd64-amazon
     driver:
       instance_type: t2.small
       block_device_mappings:
