@@ -39,14 +39,14 @@
 	},
 	"builders": [
 		{
-			"name": "UbuntuServer16.04.3_amd64",
+			"name": "UbuntuServer16.04.4_amd64",
 			"access_key": "{{ user `aws_access_key` }}",
 			"secret_key": "{{ user `aws_secret_key` }}",
-			"ami_name": "JenkinsSlave-UbuntuServer16.04.3-{{ timestamp }}_amd64",
+			"ami_name": "JenkinsSlave-UbuntuServer16.04.4-{{ timestamp }}_amd64",
 			"type": "amazon-ebs",
 			"source_ami_filter": {
 				"filters": {
-					"name": "UbuntuServer16.04.3-*",
+					"name": "UbuntuServer16.04.4-*",
 					"tag:architecture": "amd64"
 				},
 				"owners": [
@@ -89,7 +89,7 @@
 		},
 		{
 			"only": [
-				"UbuntuServer16.04.3_amd64"
+				"UbuntuServer16.04.4_amd64"
 			],
 			"type": "shell",
 			"environment_vars": [

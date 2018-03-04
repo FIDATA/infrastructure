@@ -21,7 +21,7 @@
 	],
 	"variables": {
 		"name": "JenkinsMaster",
-		"base_image": "UbuntuServer16.04.3-*",
+		"base_image": "UbuntuServer16.04.4-*",
 		"base_architecture": "amd64",
 		"aws_region": "eu-west-1",
 		"aws_vpc_id": "vpc-7c3f9d1b",
