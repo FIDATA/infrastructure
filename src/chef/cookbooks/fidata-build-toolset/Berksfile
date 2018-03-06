@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolkit
+# Cookbook Name:: fidata-build-toolset
 # Berksfile
 #
 # Copyright © 2016-2017  Basil Peace

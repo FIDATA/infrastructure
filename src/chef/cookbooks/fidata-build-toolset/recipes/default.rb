@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolkit
+# Cookbook Name:: fidata-build-toolset
 # Recipe:: default
 #
 # Copyright © 2015-2017  Basil Peace
@@ -66,11 +66,11 @@ ruby_runtime '2' do
   version '2.3'
   options dev_package: true
 end
-home_directory = node['etc']['passwd'][node['fidata']['build-toolkit']['user']]['dir']
+home_directory = node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir']
 gem_home = "#{home_directory}/.gems"
 directory gem_home do
-  user node['fidata']['build-toolkit']['user']
-  group node['fidata']['build-toolkit']['group']
+  user node['fidata']['build-toolset']['user']
+  group node['fidata']['build-toolset']['group']
   mode '0700'
 end
 unless node['platform_family'] == 'windows'
@@ -78,8 +78,8 @@ unless node['platform_family'] == 'windows'
     block do
       filename = "#{home_directory}/.pam_environment"
       Resource::File.new(filename, run_context).tap do |file|
-        file.owner node['fidata']['build-toolkit']['user']
-        file.group node['fidata']['build-toolkit']['group']
+        file.owner node['fidata']['build-toolset']['user']
+        file.group node['fidata']['build-toolset']['group']
         file.mode '0600'
         file.run_action :create_if_missing
       end
@@ -92,8 +92,8 @@ unless node['platform_family'] == 'windows'
   end
 end
 execute 'bundle config specific_platform true' do
-  user node['fidata']['build-toolkit']['user']
-  group node['fidata']['build-toolkit']['group']
+  user node['fidata']['build-toolset']['user']
+  group node['fidata']['build-toolset']['group']
 end
 
 python_runtime '3.5' do

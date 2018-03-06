@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolkit
+# Cookbook Name:: fidata-build-toolset
 # Metadata
 #
 # Copyright © 2016-2018  Basil Peace
@@ -23,13 +23,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name             'fidata-build-toolkit'
+name             'fidata-build-toolset'
 maintainer       'Basil Peace'
 maintainer_email 'grv87@yandex.ru'
 license          'Apache-2.0'
-description      'Configures toolkit to build FIDATA'
-version          '1.2.0'
-source_url       'https://github.com/FIDATA/infrastructure/tree/src/chef/cookbooks/fidata-build-toolkit'
+description      'Configures toolset to build FIDATA'
+version          '2.0.0'
+source_url       'https://github.com/FIDATA/infrastructure/tree/src/chef/cookbooks/fidata-build-toolset'
 issues_url       'https://github.com/FIDATA/infrastructure/issues'
 supports         'ubuntu'
 supports         'debian'

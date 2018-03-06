@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolkit
+# Cookbook Name:: fidata-build-toolset
 # Attributes:: default
 #
 # Copyright © 2017  Basil Peace
@@ -24,11 +24,11 @@
 # limitations under the License.
 
 default['fidata'].tap do |fidata|
-  fidata['build-toolkit'].tap do |build_toolkit|
-    build_toolkit['user'] = case node['platform']
+  fidata['build-toolset'].tap do |build_toolset|
+    build_toolset['user'] = case node['platform']
                             when 'ubuntu' then 'ubuntu'
                             end
-    build_toolkit['group'] = case node['platform']
+    build_toolset['group'] = case node['platform']
                              when 'ubuntu' then 'ubuntu'
                              end
   end

@@ -60,9 +60,9 @@ Vagrant boxes
 	./gradlew build-base
 	```
 
-3.	Test build toolkit used for Jenkins slaves:
+3.	Test build toolset used for Jenkins slaves:
 	```
-	./gradlew kitchenTest-BuildToolkit
+	./gradlew kitchenTest-BuildToolset
 	```
 
 4.	Build Jenkins slave AMIs:

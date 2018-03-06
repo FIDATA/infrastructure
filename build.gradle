@@ -769,7 +769,7 @@ task('berksVendor') {
   outputs.dir berksVendorDir
 }
 
-task('kitchenTest-BuildToolkit', type: CrossPlatformExec) {
+task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common', 'berksUpdate'
   mustRunAfter 'build-base', 'build-base-amazon'
@@ -784,7 +784,7 @@ task('kitchenTest-BuildToolkit', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'test',
-      'BuildToolkit',
+      'BuildToolset',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -792,7 +792,7 @@ task('kitchenTest-BuildToolkit', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenConverge-BuildToolkit', type: CrossPlatformExec) {
+task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
@@ -807,7 +807,7 @@ task('kitchenConverge-BuildToolkit', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'converge',
-      'BuildToolkit',
+      'BuildToolset',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -815,10 +815,10 @@ task('kitchenConverge-BuildToolkit', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenLogin-BuildToolkit') {
+task('kitchenLogin-BuildToolset') {
   group 'Test'
   dependsOn 'terraformApply-common', 'terraformOutput-common'
-  mustRunAfter 'kitchenConverge-BuildToolkit'
+  mustRunAfter 'kitchenConverge-BuildToolset'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
       consoleArgs +
@@ -827,7 +827,7 @@ task('kitchenLogin-BuildToolkit') {
       ] +
       bundleLogLevelArgs + [
         'kitchen', 'login',
-        'BuildToolkit',
+        'BuildToolset',
         '--no-log-overwrite'
       ] +
       kitchenLogLevelArgs
@@ -839,9 +839,9 @@ task('kitchenLogin-BuildToolkit') {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenVerify-BuildToolkit', type: CrossPlatformExec) {
+task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common', 'kitchenConverge-BuildToolkit'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'kitchenConverge-BuildToolset'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -854,7 +854,7 @@ task('kitchenVerify-BuildToolkit', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'verify',
-      'BuildToolkit',
+      'BuildToolset',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -862,7 +862,7 @@ task('kitchenVerify-BuildToolkit', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenDestroy-BuildToolkit', type: CrossPlatformExec) {
+task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'terraformOutput-common'
   workingDir chefDir
@@ -876,7 +876,7 @@ task('kitchenDestroy-BuildToolkit', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'destroy',
-      'BuildToolkit',
+      'BuildToolset',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -886,7 +886,7 @@ task('kitchenDestroy-BuildToolkit', type: CrossPlatformExec) {
 
 tasks['build-JenkinsSlaves'].with {
   dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'berksVendor'
-  mustRunAfter 'build-base', 'build-base-amazon', 'kitchenTest-BuildToolkit', 'kitchenConverge-BuildToolkit'
+  mustRunAfter 'build-base', 'build-base-amazon', 'kitchenTest-BuildToolset', 'kitchenConverge-BuildToolset'
 }
 
 task('generateRuntimeDataBag') {

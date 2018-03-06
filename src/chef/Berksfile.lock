@@ -3,8 +3,8 @@ DEPENDENCIES
     git: https://github.com/FIDATA/cookbook-cmake.git
     revision: 281003863365a0a95c4e56c4aadd5bc26bbf140e
     branch: develop
-  fidata-build-toolkit
-    path: cookbooks/fidata-build-toolkit
+  fidata-build-toolset
+    path: cookbooks/fidata-build-toolset
   fidata-jenkins-master
     path: site-cookbooks/fidata-jenkins-master
   fidata-jenkins-slave
@@ -28,7 +28,7 @@ GRAPH
     windows (>= 0.0.0)
   dmg (4.1.0)
   dpkg_autostart (0.2.0)
-  fidata-build-toolkit (1.2.0)
+  fidata-build-toolset (2.0.0)
     cmake (~> 0.4)
     git (~> 8.0)
     imagemagick (~> 0.2)
@@ -47,7 +47,7 @@ GRAPH
     octokit (~> 0.1)
     ssh (~> 0.10)
   fidata-jenkins-slave (1.1.1)
-    fidata-build-toolkit (>= 0.0.0)
+    fidata-build-toolset (>= 0.0.0)
   git (8.0.1)
     build-essential (>= 0.0.0)
     homebrew (>= 0.0.0)

@@ -35,4 +35,4 @@ supports         'ubuntu'
 supports         'debian'
 supports         'windows'
 chef_version     '~> 13.3' if respond_to?(:chef_version)
-depends          'fidata-build-toolkit'
+depends          'fidata-build-toolset'

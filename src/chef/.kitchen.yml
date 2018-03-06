@@ -57,7 +57,7 @@ verifier:
   name: inspec
 
 suites:
-  - name: BuildToolkit
+  - name: BuildToolset
     includes:
       - UbuntuServer16.04.4+amd64-amazon
     driver:
@@ -72,9 +72,9 @@ suites:
         - <%= ENV['AWS_SSH_SG_ID'] %>
     provisioner:
       solo_rb:
-        node_name: BuildToolkit-Ubuntu16.04.4_amd64
+        node_name: BuildToolset-Ubuntu16.04.4_amd64
     run_list:
-      - recipe[fidata-build-toolkit::default]
+      - recipe[fidata-build-toolset::default]
     verifier:
       inspec_tests:
         - git: https://github.com/FIDATA/build-environment
