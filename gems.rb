@@ -25,7 +25,7 @@ source 'https://fidata.jfrog.io/fidata/api/gems/gems'
 # CAVEAT: We can't use just any version of Chef gem.
 # Specified version should exist on Omnitruck:
 # https://omnitruck.chef.io/stable/chef/versions <>
-gem 'chef', '13.8.0'
+gem 'chef', '13.8.5'
 gem 'knife-solo', '~> 0.6'
 gem 'knife-solo_data_bag', '~> 2.1'
 gem 'thor', '~> 0.19'
