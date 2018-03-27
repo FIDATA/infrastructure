@@ -42,6 +42,10 @@ group :test do
   gem 'kitchen-vagrant', '~> 1.2'
   gem 'kitchen-ec2', '~> 2.2'
   gem 'kitchen-inspec', '~> 0.19'
+  # WORKAROUND:
+  # https://github.com/WinRb/winrm-fs/pull/64
+  # <grv87 2018-03-30>
+  gem 'winrm-fs', git: 'https://github.com/FIDATA/winrm-fs', branch: 'master'
 end
 
 group :lint do

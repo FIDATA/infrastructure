@@ -11,6 +11,9 @@
 					"enabled": false
 				},
 				"security": "basic"
+			},
+			"ec2_cloud": {
+				"group_prefix": "test-amazon"
 			}
 		}
 	},

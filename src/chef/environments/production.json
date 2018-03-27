@@ -9,6 +9,9 @@
 			"master": {
 				"protocol": "https",
 				"server_name": "jenkins.fidata.org"
+			},
+			"ec2_cloud": {
+				"group_prefix": "production"
 			}
 		}
 	},

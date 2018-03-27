@@ -41,7 +41,7 @@ default['jenkins']['master']['plugins'] = {
   # System & Maintenance
   'mailer': '1.20',
   'github-oauth': '0.29',
-  'ec2': '1.38',
+  'jclouds-jenkins': '2.14',
   'windows-slaves': '1.3.1',
   'scm-sync-configuration': '0.0.10',
   'next-build-number': '1.5',
@@ -173,6 +173,7 @@ default['jenkins']['master']['plugins'] = {
   'script-security': '1.41',
   'sse-gateway': '1.15',
   'ssh-credentials': '1.13',
+  'ssh-slaves': '1.26',
   'structs': '1.14',
   'subversion': '2.10.3',
   'token-macro': '2.3',

@@ -530,97 +530,77 @@ jenkins_script 'configure_git_plugin' do
   action :execute
 end
 
-# Configure amazon-ec2 plugin
+# Configure jclouds plugin
 
 slave_templates = []
 
 node['jenkins']['ec2_cloud']['slaves'].each do |name, slave|
-  type_data = slave['type_data']
-  ami_type = case type_data['type']
-             when 'unix'
-               <<~EOF
-                 UnixData(
-                   /*rootCommandPrefix*/ '#{type_data['root_сommand_prefix']}',
-                   /*slaveCommandPrefix*/ null,
-                   /*sshPort*/ '22'
-                 )
-               EOF
-             when 'windows'
-               <<~EOF
-                 WindowsData(
-                   /*password*/ '#{type_data['password']}',
-                   /*useHTTPS*/ false,
-                   /*bootDelay*/ '180'
-                 )
-               EOF
-             end
   slave_templates << <<~EOF
-    new SlaveTemplate(
-      /*ami*/ '#{slave['ami']}',
-      /*zone*/ '#{node['jenkins']['ec2_cloud']['zone']}',
-      /*spotConfig*/ null,
-      /*securityGroups*/ '#{slave['security_groups'].join(' ')}',
-      /*remoteFS*/ '#{slave['remote_fs']}',
-      /*type*/ InstanceType.T2Medium,
-      /*ebsOptimized*/ false,
+    new JCloudsSlaveTemplate(
+      /*name*/ '#{name.downcase.gsub(/[\+\_\.]/, '-')}',
+      /*imageId*/ '#{node['jenkins']['ec2_cloud']['zone']}/#{slave['ami']}',
+      /*imageNameRegex*/ null,
+      /*hardwareId*/ 't2.medium',
+      /*cores*/ 0,
+      /*ram*/ 0,
+      /*osFamily*/ null,
+      /*osVersion*/ null,
+      /*locationId*/ '#{node['jenkins']['ec2_cloud']['zone']}',
       /*labelString*/ '#{slave['labels'].join(' ')}',
-      /*mode*/ Node.Mode.#{slave['mode']},
       /*description*/ '#{name}',
-      /*initScript*/ '',
-      /*tmpDir*/ '',
-      /*userData*/ '',
-      /*numExecutors*/ '2',
-      /*remoteAdmin*/ '#{slave['remote_admin']}',
-      /*amiType*/ new #{ami_type},
-      /*jvmopts*/ '',
+      /*initScriptId*/ null,
+      /*numExecutors*/ 2,
       /*stopOnTerminate*/ false,
-      /*subnetId*/ '#{node['jenkins']['ec2_cloud']['subnet_id']}',
-      /*tags*/ null,
-      /*idleTerminationMinutes*/ '30',
-      /*usePrivateDnsName*/ false,
-      /*instanceCapStr*/ '#{slave['instance_cap']}',
-      /*iamInstanceProfile*/ '',
-      /*deleteRootOnTermination*/ true,
-      /*useEphemeralDevices*/ false,
-      /*useDedicatedTenancy*/ false,
-      /*launchTimeoutStr*/ '',
-      /*associatePublicIp*/ false,
-      /*customDeviceMapping*/ '',
-      /*connectBySSHProcess*/ false,
-      /*connectUsingPublicIp*/ false
+      /*jvmOptions*/ null,
+      /*preExistingJenkinsUser*/ true,
+      /*fsRoot*/ '#{slave['remote_fs']}',
+      /*allowSudo*/ false,
+      /*installPrivateKey*/ false,
+      /*overrideRetentionTime*/ null,
+      /*spoolDelayMs*/ 0,
+      /*assignFloatingIp*/ true,
+      /*waitPhoneHome*/ false,
+      /*waitPhoneHomeTimeout*/ 0,
+      /*keyPairName*/ 'fidata-jenkins', # TODO
+      /*assignPublicIp*/ false,
+      /*networks*/ '#{node['jenkins']['ec2_cloud']['subnet_id']}',
+      /*securityGroups*/ '#{slave['security_groups'].join(' ')}',
+      /*credentialsId*/, # TODO
+      /*adminCredentialsId*/ null,
+      /*mode*/ Node.Mode.#{slave['mode']},
+      /*useConfigDrive*/ false,
+      /*userDataEntries*/ null,
+      /*preferredAddress*/ null,
+      /*useJnlp*/ false
     )
   EOF
 end
 
-jenkins_script 'configure_amazon_ec2_plugin' do
+jenkins_script 'configure_jclouds_plugin' do
   command <<~EOF
     import jenkins.model.Jenkins
-    import hudson.plugins.ec2.AmazonEC2Cloud
-    import hudson.plugins.ec2.SlaveTemplate
-    import com.amazonaws.services.ec2.model.InstanceType
-    import hudson.plugins.ec2.UnixData
-    import hudson.plugins.ec2.WindowsData
+    import jenkins.plugins.jclouds.compute.JCloudsCloud
+    import jenkins.plugins.jclouds.compute.JCloudsSlaveTemplate
     import hudson.model.Node
 
     Jenkins instance = Jenkins.getInstance()
 
-    cloudName = 'Amazon EC2'
-    useInstanceProfileForCredentials = false
-    credentialsId = 'AWS'
-    region = '#{node['jenkins']['ec2_cloud']['region']}'
-    privateKey = '''#{node['fidata']['jenkins']['private_key'].chomp}'''
-    instanceCapStr = ''
-    templates = [
-      #{slave_templates.join(",\n")}
-    ]
-    AmazonEC2Cloud ec2Cloud = new AmazonEC2Cloud(
-      cloudName,
-      useInstanceProfileForCredentials,
-      credentialsId,
-      region,
-      privateKey,
-      instanceCapStr,
-      templates
+    JCloudsCloud ec2Cloud = new JCloudsCloud(
+      /*profile*/ 'Amazon EC2',
+      /*providerName*/ 'aws-ec2',
+      /*cloudCredentialsId*/ TODO 'AWS',
+      /*cloudGlobalKeyId*/ TODO,
+      /*endPointUrl*/ null,
+      /*instanceCap*/ 2,
+      /*retentionTime*/ 30,
+      /*scriptTimeout */600000,
+      /*startTimeout*/ 600000,
+      /*zones*/ null,
+      /*groupPrefix*/ '#{node['jenkins']['ec2_cloud']['group_prefix']}',
+      boolean trustAll true,
+      [
+        #{slave_templates.join(",\n")}
+      ]
     )
 
     instance.clouds.clear()

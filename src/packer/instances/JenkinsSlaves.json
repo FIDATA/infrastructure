@@ -74,6 +74,44 @@
 			"ssh_port": "{{ user `ssh_port` }}",
 			"ssh_username": "{{ user `ssh_username` }}",
 			"ssh_timeout": "{{ user `ssh_timeout` }}"
+		},
+		{
+			"name": "WindowsServer-2016+amd64",
+			"access_key": "{{ user `aws_access_key` }}",
+			"secret_key": "{{ user `aws_secret_key` }}",
+			"ami_name": "JenkinsSlave-WindowsServer-2016_amd64-{{ user `version` }}",
+			"type": "amazon-ebs",
+			"tags": {
+				"version": "{{ user `version` }}",
+				"architecture": "amd64"
+			},
+			"source_ami_filter": {
+				"filters": {
+					"name": "WindowsServer-2016-*",
+					"tag:version": "0.2.3",
+					"tag:architecture": "amd64"
+				},
+				"owners": [
+					"880042334380"
+				]
+			},
+			"region": "{{ user `aws_region` }}",
+			"vpc_id": "{{ user `aws_vpc_id` }}",
+			"subnet_id": "{{ user `aws_subnet_id` }}",
+			"instance_type": "{{ user `aws_instance_type` }}",
+			"launch_block_device_mappings": [
+				{
+					"delete_on_termination": true,
+					"volume_type": "gp2",
+					"device_name": "/dev/sda1",
+					"volume_size": "{{ user `aws_volume_size` }}"
+				}
+			],
+			"communicator": "ssh",
+			"ssh_port": "{{ user `ssh_port` }}",
+			"ssh_username": "{{ user `ssh_username` }}",
+			"ssh_timeout": "{{ user `ssh_timeout` }}",
+			"user_data_file": "src/scripts/windows/authorize-ssh-public-key.xml"
 		}
 	],
 	"provisioners": [
@@ -116,6 +154,20 @@
 			],
 			"execute_command": "chmod +x '{{ .Path }}'; {{ .Vars }} '{{ .Path }}'",
 			"script": "src/scripts/linux/final_cleanup.sh"
+		},
+		{
+			"only": [
+				"WindowsServer-2016+amd64"
+			],
+			"type": "windows-shell",
+			"script": "src/scripts/windows/zerodisk.cmd"
+		},
+		{
+			"only": [
+				"WindowsServer-2016+amd64"
+			],
+			"type": "powershell",
+			"script": "src/scripts/windows/sysprep.ps1"
 		}
 	],
 	"post-processors": [

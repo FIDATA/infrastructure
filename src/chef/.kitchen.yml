@@ -29,6 +29,8 @@ platforms:
       aws_ssh_key_id: kitchen
       skip_cost_warning: true
     transport:
+      name: ssh
+      port: 22
       username: ubuntu
       ssh_key: <%= ENV['KITCHEN_SSH_KEY'] %>
       no-host-key-verify: true
@@ -47,6 +49,40 @@ platforms:
       provision: true
       vagrantfiles:
         - ./Vagrantfile.rb
+  - name: WindowsServer-2016+amd64-amazon
+    driver:
+      name: ec2
+      image_search:
+        name: WindowsServer-2016-*
+        "tag:version": "0.2.12"
+        "tag:architecture": amd64
+        owner-id: "880042334380"
+      region: eu-west-1
+      subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
+      aws_ssh_key_id: kitchen
+      security_group_ids:
+        - <%= ENV['AWS_WINRM_SG_ID'] %>
+        - <%= ENV['AWS_RDP_SG_ID'] %>
+        - <%= ENV['AWS_SSH_SG_ID'] %>
+      retryable_tries: 360
+      retryable_sleep: 5
+      ssl_verify_peer: false
+      skip_cost_warning: true
+      user_data: ../scripts/windows/AuthorizeSSHPublicKey.xml
+    transport:
+      name: winrm
+      port: 5986
+      rdp_port: 3389
+      username: Administrator
+      no-host-key-verify: true
+      ssh_key: <%= ENV['KITCHEN_SSH_KEY'] %>
+      max_wait_until_ready: 7200
+      connection_retries: 30
+      connection_retry_sleep: 10
+      ssl: true
+      winrm_transport: ssl
+      self_signed: true
+      no_ssl_peer_verification: true
 
 provisioner:
   name: chef_solo
@@ -65,6 +101,7 @@ suites:
   - name: BuildToolset
     includes:
       - UbuntuServer-16.04.4+amd64-amazon
+      - WindowsServer-2016+amd64-amazon
     driver:
       instance_type: t2.medium
       block_device_mappings:
@@ -79,7 +116,7 @@ suites:
         - <%= ENV['AWS_SSH_SG_ID'] %>
     provisioner:
       solo_rb:
-        node_name: BuildToolset-Ubuntu16.04.4_amd64
+        node_name: BuildToolset
     run_list:
       - recipe[fidata_build_toolset::default]
     verifier:

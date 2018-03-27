@@ -1,0 +1,78 @@
+<!--
+AWS init script to configure WinRM with RDP certificate
+Copyright © 2018  Basil Peace
+
+This file is part of FIDATA Infrastructure.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<?xml version='1.0' encoding='UTF-8'?>
+<powershell>
+Write-Host 'Disabling WinRM over HTTP...'
+Disable-NetFirewallRule -Name 'WINRM-HTTP-In-TCP'
+Disable-NetFirewallRule -Name 'WINRM-HTTP-In-TCP-PUBLIC'
+
+winrm delete winrm/config/Listener?Address=*+Transport=HTTP
+
+Write-Host 'Configuring WinRM for HTTPS...'
+winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+
+winrm set winrm/config/Winrs '@{MaxMemoryPerShellMB="1024"}'
+
+Write-Host 'Ensuring non-SSL sessions are denied...'
+winrm set winrm/config/Service '@{AllowUnencrypted="false"}'
+
+Write-Host 'Enabling basic user authentication...'
+winrm set winrm/config/Service/Auth '@{Basic="true"}'
+
+Write-Host 'Allowing WinRM HTTPS in firewall...'
+New-NetFirewallRule -Name 'WINRM-HTTPS-In-TCP' `
+    -Group 'Windows Remote Management' `
+    -DisplayName 'Windows Remote Management (HTTPS-In)' `
+    -Description 'Inbound rule for Windows Remote Management via WS-Management. [TCP 5986]' `
+    -Program 'System' `
+    -Profile Domain,Private `
+    -Direction Inbound `
+    -Protocol TCP `
+    -LocalPort 5986 `
+    -Action Allow `
+    -Enabled True
+
+New-NetFirewallRule -Name 'WINRM-HTTPS-In-TCP-PUBLIC' `
+    -Group 'Windows Remote Management' `
+    -DisplayName 'Windows Remote Management (HTTPS-In)' `
+    -Description 'Inbound rule for Windows Remote Management via WS-Management. [TCP 5986]' `
+    -Program 'System' `
+    -Profile Public `
+    -Direction Inbound `
+    -Protocol TCP `
+    -LocalPort 5986 `
+    -Action Allow `
+    -Enabled True
+
+Write-Host 'Generating new self-signed certificate...'
+$Hostname = Invoke-RestMethod -uri http://169.254.169.254/latest/meta-data/public-hostname
+$Cert = New-SelfSignedCertificate -CertstoreLocation Cert:\LocalMachine\My -DnsName "$Hostname"
+
+Write-Host 'Creating WinRM HTTPS Listener...'
+$Thumbprint = $Cert.Thumbprint
+winrm create winrm/config/Listener?Address=*+Transport=HTTPS `
+  "@{Hostname=`"$Hostname`";CertificateThumbprint=`"$Thumbprint`"}"
+
+# Write-Host 'Restarting WinRM Service...'
+sc.exe config WinRM start=auto
+
+Write-Host 'Enabling remote execution of PowerShell scripts...'
+Set-ExecutionPolicy -ExecutionPolicy [Microsoft.PowerShell.ExecutionPolicy]::Bypass -Scope [Microsoft.PowerShell.ExecutionPolicyScope]::LocalMachine
+</powershell>

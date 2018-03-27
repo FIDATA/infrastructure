@@ -669,12 +669,15 @@ packer {
     'aws_secret_key': awsSecretKey,
     'vagrant_cloud_token': vagrantCloudToken,
     'encrypted_data_bag_secret': encryptedDataBagSecret,
+    'fidata_chef_username': fidataChefUsername,
+    'fidata_chef_artifactory_api_key': fidataChefArtifactoryAPIKey,
   ]
   // Kernel images
   template 'src/packer/kernel_images/kernel-UbuntuServer-16.04.4+amd64.json'
 
   // Base images
   template 'src/packer/base_images/UbuntuServer-16.04.4+amd64.json'
+  template 'src/packer/base_images/WindowsServer-2016+amd64.json'
 
   // Instances
   template 'src/packer/instances/JenkinsMaster.json'
@@ -789,7 +792,7 @@ task('berksVendor') {
   outputs.dir berksVendorDir
 }
 
-task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
+task('kitchenTest-BuildToolset-Ubuntu', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'berksUpdate'
   mustRunAfter 'build-base', 'build-base-amazon'
@@ -805,7 +808,7 @@ task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'test',
-      'BuildToolset',
+      'BuildToolset-Ubuntu',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -813,7 +816,30 @@ task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
+task('kitchenTest-BuildToolset-Windows', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common', 'berksUpdate'
+  mustRunAfter 'build-base', 'build-base-amazon'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'test',
+      'BuildToolset-Windows',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenConverge-BuildToolset-Ubuntu', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
@@ -829,7 +855,30 @@ task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'converge',
-      'BuildToolset',
+      'BuildToolset-Ubuntu',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenConverge-BuildToolset-Windows', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformApply-common', 'terraformOutput-common'
+  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'converge',
+      'BuildToolset-Windows',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -849,7 +898,7 @@ task('kitchenLogin-BuildToolset') {
       ] +
       bundleLogLevelArgs + [
         'kitchen', 'login',
-        'BuildToolset',
+        'BuildToolset-WindowsServer-2016+amd64-amazon', // TODO
         '--no-log-overwrite'
       ] +
       kitchenLogLevelArgs
@@ -884,7 +933,7 @@ task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
+task('kitchenDestroy-BuildToolset-Ubuntu', type: CrossPlatformExec) {
   group 'Test'
   dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   workingDir chefDir
@@ -898,7 +947,29 @@ task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'destroy',
-      'BuildToolset',
+      'BuildToolset-Ubuntu',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenDestroy-BuildToolset-Windows', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'terraformOutput-common'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'destroy',
+      'BuildToolset-Windows',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs
@@ -923,6 +994,9 @@ task('generateRuntimeDataBag') {
         'email': fidataChefEmail,
         'public_key': tasks['generateSSHKey-FIDATAChef'].publicKeyFile.text,
         'private_key': tasks['generateSSHKey-FIDATAChef'].privateKeyFile.text,
+        'artifactory': [
+          'api_key': fidataChefArtifactoryAPIKey,
+        ],
         'jenkins': [
           'password': fidataChefJenkinsPassword,
         ],

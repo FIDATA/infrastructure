@@ -25,18 +25,59 @@
 
 include_recipe 'home_bundle_directory::default'
 
+if node['platform_family'] == 'windows'
+  chef_gem 'dotenv' do
+    compile_time true if respond_to?(:compile_time)
+  end
+  require 'dotenv'
+  env_filename = "#{ENV['TEMP']}\\.env"
+  batch 'generate_env_file' do
+    code <<~EOF
+      RefreshEnv
+      set > #{env_filename}
+    EOF
+    action :run
+  end
+  file env_filename do
+    action :nothing
+  end
+  ruby_block 'refreshenv' do
+    block do
+      run_context.resource_collection.find(batch: 'generate_env_file').run_action :run
+      Dotenv.overload(env_filename)
+      run_context.resource_collection.find(file: env_filename).run_action :delete
+    end
+    action :nothing
+  end
+end
+
 if node['platform_family'] == 'debian'
   apt_update 'apt_update' do
     action :update
   end
 end
 
-node.default['java']['jdk_version'] = '8'
-node.default['java']['accept_oracle_download_terms'] = true
-node.default['java']['set_etc_environment'] = true
-include_recipe 'java::default'
+# WORKAROUND: <grv87>
+if node['platform_family'] != 'windows'
+  node.default['java']['jdk_version'] = '8'
+  node.default['java']['set_etc_environment'] = true
+  include_recipe 'java::default'
+else
+  chocolatey_package 'jdk8' do
+    options '--version=8.0.172 -params "source=false"'
+  end
+end
 
-git_client 'default'
+# WORKAROUND:
+# https://github.com/chef-cookbooks/git/issues/113
+# <grv87 2018-04-17>
+if node['platform_family'] != 'windows'
+  git_client 'default'
+else
+  chocolatey_package 'git.install' do
+    options '-params "/NoCredentialManager /SChannel"'
+  end
+end
 
 case node['platform_family']
 when 'debian'
@@ -44,9 +85,8 @@ when 'debian'
   package 'g++'
   package 'make'
 when 'windows'
-  chocolatey_package 'vcbuildtools' do
-    options '-ia "/InstallSelectableItems Win81SDK_CppBuildSKUV1"'
-  end
+  chocolatey_package 'visualstudio2017buildtools'
+  chocolatey_package 'visualstudio2017-workload-vctools'
 end
 
 package 'gfortran' unless node['platform_family'] == 'windows'
@@ -58,28 +98,68 @@ when 'windows'
   chocolatey_package 'diffutils'
 end
 
-package 'gperf' unless node['platform_family'] == 'windows'
+case node['platform_family']
+when 'fedora', 'rhel', 'freebsd', 'debian', 'mac_os_x'
+  package 'gperf'
+when 'windows'
+  chocolatey_package 'gperf'
+end
 
-node.default['cmake']['install_method'] = 'binary'
+node.default['cmake']['install_method'] = node['platform_family'] != 'windows' ? 'binary' : 'package'
 node.default['cmake']['version'] = '3.11.0'
 include_recipe 'cmake::default'
 
-ruby_runtime '2' do
-  provider :ruby_build
-  version '2.4'
-  options dev_package: true
+if node['platform_family'] != 'windows'
+  ruby_runtime '2' do
+    provider :ruby_build
+    version '2.4'
+    options dev_package: true
+  end
+else
+  chocolatey_package 'ruby' do
+    options '--version=2.3.3'
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
+  chocolatey_package 'ruby2.devkit' do
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
+  execute 'gem install bundler' do
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
+  # gem_package 'bundler'
+  # ruby_runtime 'system' do
+  #   provider :system
+  #   action :nothing
+  # end
+  # ruby_gem 'bundler' do
+  #   ruby 'system'
+  # end
 end
 
 execute 'bundle config specific_platform true' do
-  user node['fidata']['build-toolset']['user']
-  group node['fidata']['build-toolset']['group']
+  if node['platform_family'] != 'windows'
+    user node['fidata']['build-toolset']['user']
+    group node['fidata']['build-toolset']['group']
+  elsif ENV['USERNAME'] != node['fidata']['build-toolset']['user']
+    domain node['fidata']['build-toolset']['domain']
+    user node['fidata']['build-toolset']['user']
+    password node['fidata']['build-toolset']['password']
+  end
 end
 
-python_runtime '3.5' do
-  pip_version '9.0.1'
+if node['platform_family'] != 'windows'
+  python_runtime '3.5' do
+    pip_version '9.0.3'
+  end
+else
+  chocolatey_package 'python' do
+    options '--version=3.5.4 --install-arguments="InstallAllUsers=1 CompileAll=1 Include_doc=0 Shortcuts=0 Include_dev=0 Include_tcltk=0"'
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
 end
+
 python_package 'pipenv' do
-  python '3.5'
+  python '3.5' if node['platform_family'] != 'windows'
 end
 
 case node['platform_family']
@@ -140,10 +220,12 @@ when 'mac_os_x'
   package 'libxslt'
   package 'openjade'
   package 'opensp'
+when 'windows'
+  package 'docbook-bundle'
 end
 
 include_recipe 'imagemagick::default'
-unless node['platform_family'] == 'windows'
+if node['platform_family'] != 'windows'
   environment = Pathname.new('/etc/environment')
   convert = Pathname.new('/usr/bin/convert')
   ruby_block "Set IMCONV in #{environment}" do
@@ -153,5 +235,9 @@ unless node['platform_family'] == 'windows'
       file.insert_line_if_no_match(/^IMCONV=/, "IMCONV=#{convert}")
       file.write_file
     end
+  end
+else
+  env 'IMCONV' do
+    # TODO
   end
 end

@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata_build_toolset
+# Cookbook Name:: fidata-build-toolset
 # Attributes:: default
 #
-# Copyright © 2017-2018  Basil Peace
+# Copyright © 2018  Basil Peace
 #
 # This file is part of FIDATA Infrastructure.
 #
@@ -23,14 +23,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-default['fidata'].tap do |fidata|
-  fidata['build-toolset'].tap do |build_toolset|
-    build_toolset['user'] = case node['platform']
-                            when 'ubuntu' then 'ubuntu'
-                            when 'windows' then 'Administrator'
-                            end
-    build_toolset['group'] = case node['platform']
-                             when 'ubuntu' then 'ubuntu'
-                             end
-  end
-end
+default['fidata']['build-toolset']['user'] = 'jenkins'
