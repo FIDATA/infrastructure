@@ -31,7 +31,7 @@ include_recipe 'fidata-build-toolset::default'
 
 directory '/srv/jenkins' do
   user node['fidata']['build-toolset']['user']
-  group node['fidata']['build-toolset']['user']
+  group node['fidata']['build-toolset']['group']
   recursive true
   mode '0700'
   action :create
