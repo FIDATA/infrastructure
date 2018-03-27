@@ -70,7 +70,7 @@ data "aws_subnet" "fidata" {
 data "aws_security_group" "SSH" {
   vpc_id = "${data.aws_vpc.fidata.id}"
   filter = {
-    name = "tag:Name"
+    name = "group-name"
     values = ["SSH"]
   }
 }
@@ -78,7 +78,7 @@ data "aws_security_group" "SSH" {
 data "aws_security_group" "HTTP_S" {
   vpc_id = "${data.aws_vpc.fidata.id}"
   filter = {
-    name = "tag:Name"
+    name = "group-name"
     values = ["HTTP(S)"]
   }
 }

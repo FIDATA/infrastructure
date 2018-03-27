@@ -189,9 +189,6 @@ resource "aws_default_security_group" "default" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags {
-    Name = "default"
-  }
 }
 output "default_security_group_id" {
   value = "${aws_default_security_group.default.id}"
@@ -211,9 +208,6 @@ resource "aws_security_group" "SSH" {
     to_port = 0
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags {
-    Name = "SSH"
   }
 }
 output "SSH_security_group_id" {
@@ -247,9 +241,6 @@ resource "aws_security_group" "HTTP_S" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags {
-    Name = "HTTP(S)"
-  }
 }
 output "HTTP_S_security_group_id" {
   value = "${aws_security_group.HTTP_S.id}"
@@ -276,9 +267,6 @@ resource "aws_security_group" "RDP" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags {
-    Name = "RDP"
-  }
 }
 output "RDP_security_group_id" {
   value = "${aws_security_group.RDP.id}"
@@ -298,9 +286,6 @@ resource "aws_security_group" "SMB" {
     to_port = 0
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags {
-    Name = "SMB"
   }
 }
 output "SMB_security_group_id" {
@@ -327,9 +312,6 @@ resource "aws_security_group" "WinRM" {
     to_port = 0
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags {
-    Name = "WinRM"
   }
 }
 output "WinRM_security_group_id" {
