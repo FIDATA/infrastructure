@@ -34,5 +34,4 @@ directory '/srv/jenkins' do
   group node['fidata']['build-toolset']['group']
   recursive true
   mode '0700'
-  action :create
 end
