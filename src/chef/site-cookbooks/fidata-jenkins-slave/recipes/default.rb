@@ -23,13 +23,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-directory node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir'] do
+directory Pathname.new(node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir']) do
   mode '0700'
 end
 
 include_recipe 'fidata-build-toolset::default'
 
-directory '/srv/jenkins' do
+directory Pathname.new('/srv/jenkins') do
   user node['fidata']['build-toolset']['user']
   group node['fidata']['build-toolset']['group']
   recursive true

@@ -27,9 +27,7 @@ require 'thor'
 class GetFileContentsInJSONFormat < Thor
   desc 'get path', 'Get file contents in JSON format'
   def get(path)
-    File.open(path, 'r') do |f|
-      puts JSON.generate(contents: f.read)
-    end
+    puts JSON.generate(contents: Pathname.new(path).read)
   end
 end
 

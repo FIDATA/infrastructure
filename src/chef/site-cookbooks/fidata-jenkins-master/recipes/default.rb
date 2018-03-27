@@ -106,6 +106,8 @@ jenkins_command 'safe-restart' do
   action :nothing
 end
 
+home = Pathname.new(node['jenkins']['master']['home'])
+
 # Install and configure Git
 
 git_client 'default' do
@@ -128,7 +130,7 @@ end
 
 # Configure SSH
 
-ssh_dir = "#{node['jenkins']['master']['home']}/.ssh"
+ssh_dir = home + '.ssh'
 
 directory ssh_dir do
   owner node['jenkins']['master']['user']
@@ -139,7 +141,7 @@ end
 
 # Upload SSH key to the node and Github
 
-ssh_private_key_file = "#{ssh_dir}/id_rsa"
+ssh_private_key_file = ssh_dir + 'id_rsa'
 file 'ssh_private_key' do
   content node['fidata']['jenkins']['private_key'].chomp
   path ssh_private_key_file
@@ -151,7 +153,7 @@ file 'ssh_private_key' do
 end
 file 'ssh_public_key' do
   content node['fidata']['jenkins']['public_key']
-  path "#{ssh_private_key_file}.pub"
+  path ssh_private_key_file.sub_ext('.pub')
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
   mode '0600'
@@ -174,7 +176,7 @@ end
 
 # Turn off scm-sync-configuration plugin
 
-plugins_directory = "#{node['jenkins']['master']['home']}/plugins"
+plugins_directory = home + 'plugins'
 directory plugins_directory do
   user node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
@@ -182,7 +184,7 @@ directory plugins_directory do
   action :create
 end
 
-scm_sync_configuration_disabled_file = "#{plugins_directory}/scm-sync-configuration.jpi.disabled" # "#{run_context.resource_collection.find(jenkins_plugin: 'scm-sync-configuration').provider_for_action(:install).plugin_file}.disabled"
+scm_sync_configuration_disabled_file = plugins_directory + 'scm-sync-configuration.jpi.disabled' # "#{run_context.resource_collection.find(jenkins_plugin: 'scm-sync-configuration').provider_for_action(:install).plugin_file}.disabled"
 file scm_sync_configuration_disabled_file do
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
@@ -194,7 +196,7 @@ end
 
 cookbook_file 'jenkins.install.UpgradeWizard.state' do
   source 'jenkins.install.UpgradeWizard.state'
-  path "#{node['jenkins']['master']['home']}/jenkins.install.UpgradeWizard.state"
+  path home + 'jenkins.install.UpgradeWizard.state'
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
   mode '0644'
@@ -203,14 +205,14 @@ end
 
 cookbook_file 'jenkins.install.InstallUtil.lastExecVersion' do
   source 'jenkins.install.InstallUtil.lastExecVersion'
-  path "#{node['jenkins']['master']['home']}/jenkins.install.InstallUtil.lastExecVersion"
+  path home + 'jenkins.install.InstallUtil.lastExecVersion'
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
   mode '0644'
   action :create_if_missing
 end
 
-init_scripts_dir = "#{node['jenkins']['master']['home']}/init.groovy.d"
+init_scripts_dir = home + 'init.groovy.d'
 
 directory 'init_scripts_dir' do
   path init_scripts_dir
@@ -225,7 +227,7 @@ template 'bootstrap-security.groovy' do
     admin_username: node['fidata']['chef']['username'],
     admin_password: node['fidata']['chef']['jenkins']['password'],
   )
-  path "#{init_scripts_dir}/bootstrap-security.groovy"
+  path init_scripts_dir + 'bootstrap-security.groovy'
   sensitive true
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
@@ -392,7 +394,7 @@ end
 WORKING_DIRECTORY = 'scm-sync-configuration'
 CHECKOUT_SCM_DIRECTORY = 'checkoutConfiguration'
 
-scm_sync_configuration_working_directory = "#{node['jenkins']['master']['home']}/#{WORKING_DIRECTORY}"
+scm_sync_configuration_working_directory = home + WORKING_DIRECTORY
 directory scm_sync_configuration_working_directory do
   user node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
@@ -400,7 +402,7 @@ directory scm_sync_configuration_working_directory do
   action :create
 end
 
-scm_sync_configuration_checkout_scm_directory = "#{scm_sync_configuration_working_directory}/#{CHECKOUT_SCM_DIRECTORY}"
+scm_sync_configuration_checkout_scm_directory = scm_sync_configuration_working_directory + CHECKOUT_SCM_DIRECTORY
 
 git 'scm_sync_configuration' do
   repository node['jenkins']['master']['scm_sync_configuration']['git_repository_url']
@@ -418,24 +420,22 @@ end
 
 ruby_block 'scm_sync_configuration_reload_all_files_from_scm' do # ~FC014
   block do
-    Dir.chdir(scm_sync_configuration_checkout_scm_directory) do
-      Dir.glob(['**/*']).each do |f|
-        next if f == '.git'
-        new_relative = "#{node['jenkins']['master']['home']}/#{f}"
-        Resource::Directory.new(new_relative, run_context).tap do |r|
-          r.owner node['jenkins']['master']['user']
-          r.group node['jenkins']['master']['group']
-          r.mode '0755'
-          r.run_action :create
-        end if File.directory?(f)
-        Resource::File.new(new_relative, run_context).tap do |r|
-          r.owner node['jenkins']['master']['user']
-          r.group node['jenkins']['master']['group']
-          r.mode '0644'
-          r.content IO.read(f, mode: 'rb')
-          r.run_action :create
-        end if File.file?(f)
-      end
+    scm_sync_configuration_checkout_scm_directory.glob(['**/*']).each do |f|
+      next if f.basename == '.git'
+      new_relative = home + f.basename
+      Resource::Directory.new(new_relative, run_context).tap do |r|
+        r.owner node['jenkins']['master']['user']
+        r.group node['jenkins']['master']['group']
+        r.mode '0755'
+        r.run_action :create
+      end if f.directory?
+      Resource::File.new(new_relative, run_context).tap do |r|
+        r.owner node['jenkins']['master']['user']
+        r.group node['jenkins']['master']['group']
+        r.mode '0644'
+        r.content f.read(mode: 'rb')
+        r.run_action :create
+      end if f.file?
     end
   end
   action :nothing
@@ -448,7 +448,7 @@ template 'enable_jenkins_cli_over_remoting' do
   variables(
     enabled: true,
   )
-  path "#{node['jenkins']['master']['home']}/jenkins.CLI.xml"
+  path home + 'jenkins.CLI.xml'
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
   mode '0644'
@@ -749,7 +749,7 @@ template 'disable_jenkins_cli_over_remoting' do
   variables(
     enabled: false,
   )
-  path "#{node['jenkins']['master']['home']}/jenkins.CLI.xml"
+  path home + 'jenkins.CLI.xml'
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
   mode '0644'

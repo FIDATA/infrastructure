@@ -28,16 +28,16 @@
 source 'https://supermarket.chef.io'
 
 def process_cookbook_path(path)
-  berksfile = "#{path}/Berksfile"
-  instance_eval(File.read(berksfile), File.absolute_path(berksfile)) # if File.exist?(berksfile)
-  cookbook File.basename(path), path: path
+  berksfile = path + 'Berksfile'
+  instance_eval(berksfile.read, berksfile.realdirpath.to_s) if berksfile.exist?
+  cookbook path.basename.to_s, path: path
 end
 
 def process_path(path)
-  Dir.glob("#{path}/*").each do |cookbook_path|
+  Pathname.new(path).children.select { |c| c.directory? }.each do |cookbook_path|
     process_cookbook_path cookbook_path
   end
 end
 
-process_path './cookbooks'
-process_path './site-cookbooks'
+process_path 'cookbooks'
+process_path 'site-cookbooks'
