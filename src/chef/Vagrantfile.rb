@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Berksfile for FIDATA Infrastructure
-# Copyright © 2016-2017  Basil Peace
+# Copyright © 2016-2018  Basil Peace
 #
 # CRED: Based on https://github.com/tknerr/bills-kitchen/blob/master/files/home/.vagrant.d/Vagrantfile <>
 # Copyright © 2012-2015 Torben Knerr
