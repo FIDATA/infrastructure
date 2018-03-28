@@ -19,7 +19,7 @@ This repository contains:
 *	VirtualBox (5.2.8)
 *	Packer
 *	Vagrant and vagrant-cachier plugin
-*	Terraform (~> 0.10)
+*	Terraform (~> 0.11.4)
 *	Ruby & Bundler (~> 1.14, gems locked with 1.16.1)
 *	Python 3 & [Pipenv](http://pipenv.org/)
 

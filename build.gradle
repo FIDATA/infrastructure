@@ -592,7 +592,7 @@ task('terraformDestroy-common') {
         [
           'terraform', 'destroy',
           "-state=${stateFile.absolutePath}",
-          '-force',
+          '-auto-approve',
           '-lock=true'
         ] +
         terraformVariablesForArgs
@@ -622,6 +622,7 @@ task('terraformApply-common') {
         [
           'terraform', 'apply',
           '-input=false',
+          '-auto-approve',
           "-state=${stateFile.absolutePath}",
           '-lock=true'
         ] +
@@ -1216,7 +1217,7 @@ task('terraformDestroy-instances') {
         [
           'terraform', 'destroy',
           "-state=${stateFile.absolutePath}",
-          '-force',
+          '-auto-approve',
           '-lock=true'
         ] +
         terraformVariablesForArgs
@@ -1240,6 +1241,7 @@ task('terraformApply-instances') {
         [
           'terraform', 'apply',
           '-input=false',
+          '-auto-approve',
           "-state=${stateFile.absolutePath}",
           '-lock=true'
         ] +
