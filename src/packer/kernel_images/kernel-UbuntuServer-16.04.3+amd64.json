@@ -57,6 +57,7 @@
 			[ "modifyvm", "{{ .Name }}", "--rtcuseutc", "on" ],
 			[ "modifyvm", "{{ .Name }}", "--memory", "{{ user `memory` }}" ],
 			[ "modifyvm", "{{ .Name }}", "--vram", "{{ user `vram` }}" ],
+			[ "modifyvm", "{{ .Name }}", "--audio", "none" ],
 			[ "modifyvm", "{{ .Name }}", "--nic1", "nat" ],
 			[ "modifyvm", "{{ .Name }}", "--videocap", "on" ],
 			[ "modifyvm", "{{ .Name }}", "--videocapfile", "{{ user `videocapture_dir` }}/{{ .Name }}.webm" ]
