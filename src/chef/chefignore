@@ -1,13 +1,18 @@
 # Git
 .gitignore
 .gitkeep
+.gitattributes
+
 # GFM Viewer
 .*.md.html
+
 # Chef
 .chef
 # Berskshelf
 Berksfile.lock
+
 # Test Kitchen
 .kitchen*
 # Vagrant
 Vagrantfile
+Vagrantfile.rb

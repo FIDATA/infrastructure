@@ -1,15 +1,18 @@
-/build/
-# Gradle
-.gradle/
-gradle.properties
+# Bundler
+.bundle
+
 # Eclipse
 .settings/
 # GFM Viewer
 .*.md.html
-# Bundler
-.bundle
+
+/build/
+# Gradle
+.gradle/
+gradle.properties
 # Packer
 packer_cache/
 *.pem
+
 # Rubocop
 .rubocop_todo.yml
