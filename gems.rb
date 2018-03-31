@@ -22,20 +22,31 @@
 
 source 'https://fidata.jfrog.io/fidata/api/gems/gems'
 
-# CAVEAT: We can't use just any version of Chef gem.
-# Specified version should exist on Omnitruck:
-# https://omnitruck.chef.io/stable/chef/versions <>
-gem 'chef', '13.8.5'
-gem 'knife-solo', '~> 0.6'
-gem 'knife-solo_data_bag', '~> 2.1'
-gem 'thor', '~> 0.19'
-gem 'berkshelf', '~> 6.3'
-gem 'knife-art', '~> 1.0'
-gem 'rubocop', '~> 0.49'
-gem 'cookstyle', '~> 2.1'
-gem 'rubocop-checkstyle_formatter', '~> 0.4'
-gem 'foodcritic', '~> 12.1'
-gem 'test-kitchen', '~> 1.17'
-gem 'kitchen-vagrant', '~> 1.2'
-gem 'kitchen-ec2', '~> 2.2'
-gem 'kitchen-inspec', '~> 0.19'
+group :development do
+  gem 'knife-solo', '~> 0.6'
+end
+
+group :build do
+  # CAVEAT: We can't use just any version of Chef gem.
+  # Specified version should exist on Omnitruck:
+  # https://omnitruck.chef.io/stable/chef/versions <>
+  gem 'chef', '13.8.5'
+  gem 'knife-solo_data_bag', '~> 2.1'
+  gem 'thor', '~> 0.19'
+  gem 'berkshelf', '~> 6.3'
+  gem 'knife-art', '~> 1.0'
+end
+
+group :test do
+  gem 'test-kitchen', '~> 1.17'
+  gem 'kitchen-vagrant', '~> 1.2'
+  gem 'kitchen-ec2', '~> 2.2'
+  gem 'kitchen-inspec', '~> 0.19'
+end
+
+group :lint do
+  gem 'rubocop', '~> 0.49'
+  gem 'rubocop-checkstyle_formatter', '~> 0.4'
+  gem 'foodcritic', '~> 12.1'
+  gem 'cookstyle', '~> 2.1'
+end
