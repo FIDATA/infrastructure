@@ -27,6 +27,7 @@ platforms:
       region: eu-west-1
       subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
       aws_ssh_key_id: kitchen
+      skip_cost_warning: true
     transport:
       username: ubuntu
       ssh_key: <%= ENV['KITCHEN_SSH_KEY'] %>
