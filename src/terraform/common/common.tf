@@ -149,8 +149,8 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
   dhcp_options_id = "${aws_vpc_dhcp_options.dns_resolver.id}"
 }
 
-resource "aws_network_acl" "main" {
-  vpc_id = "${aws_vpc.fidata.id}"
+resource "aws_default_network_acl" "default" {
+  default_network_acl_id = "${aws_vpc.fidata.default_network_acl_id}"
   subnet_ids = ["${aws_subnet.fidata.id}"]
   egress {
     rule_no = 100
@@ -169,7 +169,7 @@ resource "aws_network_acl" "main" {
     action = "allow"
   }
   tags {
-    Name = "main"
+    Name = "default"
   }
 }
   
