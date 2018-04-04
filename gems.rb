@@ -44,6 +44,11 @@ group :test do
   gem 'kitchen-inspec', '~> 0.19'
 end
 
+group :build_debug do
+  gem 'pry'
+  gem 'pry-nav'
+end
+
 group :lint do
   gem 'rubocop', '~> 0.49'
   gem 'rubocop-checkstyle_formatter', '~> 0.4'
