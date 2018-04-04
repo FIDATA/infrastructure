@@ -99,7 +99,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/cleanup.sh",
 				"src/scripts/linux/zerodisk.sh",

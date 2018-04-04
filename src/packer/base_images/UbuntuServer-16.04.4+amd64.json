@@ -98,7 +98,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"inline_shebang": "/bin/sh -eux",
 			"inline": [
 				"sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
@@ -109,7 +109,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"script": "src/scripts/linux/update.sh",
 			"expect_disconnect": true
 		},
@@ -118,7 +118,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"script": "src/scripts/linux/sudoers.sh"
 		},
 		{
@@ -127,7 +127,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"script": "src/scripts/linux/virtualbox.sh"
 		},
 		{
@@ -144,7 +144,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/cleanup.sh"
 			]
@@ -155,7 +155,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk_boot.sh"
 			]
@@ -165,7 +165,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk.sh",
 				"src/scripts/linux/final_cleanup.sh"
