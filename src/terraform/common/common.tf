@@ -95,9 +95,11 @@ EOF
 }
 output "fidata_jenkins_iam_access_key" {
   value = "${aws_iam_access_key.fidata_jenkins.id}"
+  sensitive = true
 }
 output "fidata_jenkins_iam_secret_key" {
   value = "${aws_iam_access_key.fidata_jenkins.secret}"
+  sensitive = true
 }
 
 # VPC
