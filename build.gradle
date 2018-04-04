@@ -137,7 +137,10 @@ ext.with {
       case { it <= LogLevel.ERROR }: 'ERROR'; break
     }
   }()
-  terraformEnvironment = [:]
+  terraformEnvironment = [
+    'ARTIFACTORY_USERNAME': artifactoryUser,
+    'ARTIFACTORY_PASSWORD': artifactoryPassword,
+  ]
   if (terraformLogLevel != null) {
     terraformEnvironment['TF_LOG'] = terraformLogLevel
   }
@@ -157,7 +160,6 @@ ext.with {
   berksVendorDir = file('build/berks-cookbooks')
   vagrantDir = file('src/vagrant')
   terraformDir = file('src/terraform')
-  terraformOutputDir = file('build/terraform')
   encryptedDataBagSecret = file(encryptedDataBagSecret)
   keysDir = file('build/keys')
   fidataMainSSHPrivateKey = file("$keysDir/fidata-main")
@@ -583,7 +585,6 @@ task('terraformDestroy-common') {
   mustRunAfter 'terraformValidate-common'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
-  File stateFile = file("$terraformOutputDir/common.tfstate")
   doLast {
     exec {
       workingDir "$terraformDir/common"
@@ -591,7 +592,6 @@ task('terraformDestroy-common') {
       commandLine(
         [
           'terraform', 'destroy',
-          "-state=${stateFile.absolutePath}",
           '-auto-approve',
           '-lock=true'
         ] +
@@ -599,7 +599,6 @@ task('terraformDestroy-common') {
       )
     }
   }
-  outputs.file stateFile
 }
 
 task('terraformApply-common') {
@@ -613,7 +612,6 @@ task('terraformApply-common') {
     file tasks['generateSSHKey-FIDATAJenkins'].publicKeyFile
     file tasks['generateSSHKey-Kitchen'].publicKeyFile
   }
-  File stateFile = file("$terraformOutputDir/common.tfstate")
   doLast {
     exec {
       workingDir "$terraformDir/common"
@@ -623,21 +621,17 @@ task('terraformApply-common') {
           'terraform', 'apply',
           '-input=false',
           '-auto-approve',
-          "-state=${stateFile.absolutePath}",
           '-lock=true'
         ] +
         terraformVariablesForArgs
       )
     }
   }
-  outputs.file stateFile
 }
 
 task('terraformOutput-common') {
   dependsOn 'terraformApply-common'
   mustRunAfter 'terraformValidate-common'
-  File stateFile = file("$terraformOutputDir/common.tfstate")
-  inputs.file stateFile
   doLast {
     new ByteArrayOutputStream().withStream { os ->
       exec {
@@ -645,7 +639,6 @@ task('terraformOutput-common') {
         environment << terraformEnvironment
         commandLine([
           'terraform', 'output',
-          "-state=${stateFile.absolutePath}",
           '-json'
         ])
         standardOutput = os
@@ -1208,7 +1201,6 @@ task('terraformDestroy-instances') {
   mustRunAfter 'terraformValidate-instances'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
-  File stateFile = file("$terraformOutputDir/instances.tfstate")
   doLast {
     exec {
       workingDir "$terraformDir/instances"
@@ -1216,7 +1208,6 @@ task('terraformDestroy-instances') {
       commandLine(
         [
           'terraform', 'destroy',
-          "-state=${stateFile.absolutePath}",
           '-auto-approve',
           '-lock=true'
         ] +
@@ -1224,7 +1215,6 @@ task('terraformDestroy-instances') {
       )
     }
   }
-  outputs.file stateFile
 }
 
 task('terraformApply-instances') {
@@ -1232,7 +1222,6 @@ task('terraformApply-instances') {
   mustRunAfter 'terraformValidate-instances', 'terraformDestroy-instances', 'build-JenkinsMaster'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
-  File stateFile = file("$terraformOutputDir/instances.tfstate")
   doLast {
     exec {
       workingDir "$terraformDir/instances"
@@ -1242,14 +1231,13 @@ task('terraformApply-instances') {
           'terraform', 'apply',
           '-input=false',
           '-auto-approve',
-          "-state=${stateFile.absolutePath}",
+          '-auto-approve',
           '-lock=true'
         ] +
         terraformVariablesForArgs
       )
     }
   }
-  outputs.file stateFile
   outputs.upToDateWhen { false }
 }
 

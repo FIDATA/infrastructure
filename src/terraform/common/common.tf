@@ -18,6 +18,11 @@
 
 terraform {
   required_version = "~> 0.10"
+  backend "artifactory" {
+    url      = "https://fidata.jfrog.io/fidata"
+    repo     = "terraform-state"
+    subpath  = "common"
+  }
 }
 
 # Variables
