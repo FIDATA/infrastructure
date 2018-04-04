@@ -104,8 +104,17 @@
 			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/cleanup.sh",
-				"src/scripts/linux/zerodisk.sh"
+				"src/scripts/linux/zerodisk.sh",
+				"src/scripts/linux/final_cleanup.sh"
 			]
+		},
+		{
+			"type": "shell",
+			"environment_vars": [
+				"DEBIAN_FRONTEND=noninteractive"
+			],
+			"execute_command": "chmod +x '{{ .Path }}'; {{ .Vars }} '{{ .Path }}'",
+			"script": "src/scripts/linux/final_cleanup.sh"
 		}
 	],
 	"post-processors": [
