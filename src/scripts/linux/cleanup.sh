@@ -1,6 +1,7 @@
 #!/bin/sh -eux
 
 # Cleanup script for Linux
+# Copyright © 2018  Basil Peace
 # Based on script from Chef Bento
 # Copyright 2012-2016, Chef Software, Inc. (<legal@chef.io>)
 # Copyright 2011-2012, Tim Dysinger (<tim@dysinger.net>)
