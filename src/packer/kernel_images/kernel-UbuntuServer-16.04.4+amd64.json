@@ -31,8 +31,9 @@
 		"vram": "12",
 		"disk_size": "32768",
 		"videocapture_dir": ".",
+		"username": "ubuntu",
+		"password": "ubuntu",
 		"ssh_port": "22",
-		"ssh_username": "ubuntu",
 		"ssh_timeout": "3600s",
 		"vbox_output_dir": ".",
 		"manifest_output_dir": "."
@@ -88,10 +89,10 @@
 		"guest_additions_mode": "disable",
 		"communicator": "ssh",
 		"ssh_port": "{{ user `ssh_port` }}",
-		"ssh_username": "{{ user `ssh_username` }}",
-		"ssh_password": "ubuntu",
+		"ssh_username": "{{ user `username` }}",
+		"ssh_password": "{{ user `password` }}",
 		"ssh_timeout": "{{ user `ssh_timeout` }}",
-		"shutdown_command": "echo 'ubuntu' | sudo -S shutdown -P now",
+		"shutdown_command": "echo '{{ user `password` }}' | sudo -S shutdown -P now",
 		"post_shutdown_delay": "2m"
 	}],
 	"provisioners": [
@@ -101,7 +102,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk_boot.sh"
 			]
@@ -111,7 +112,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk.sh"
 			]

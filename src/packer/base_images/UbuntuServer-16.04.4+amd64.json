@@ -30,8 +30,9 @@
 		"aws_subnet_id": "subnet-3615b351",
 		"aws_instance_type": "t2.nano",
 		"aws_volume_size": "8",
+		"username": "ubuntu",
+		"password": "ubuntu",
 		"ssh_port": "22",
-		"ssh_username": "ubuntu",
 		"ssh_timeout": "120s",
 		"vbox_output_dir": ".",
 		"vagrant_output_dir": ".",
@@ -57,10 +58,10 @@
 			"boot_wait": "10s",
 			"communicator": "ssh",
 			"ssh_port": "{{ user `ssh_port` }}",
-			"ssh_username": "{{ user `ssh_username` }}",
-			"ssh_password": "ubuntu",
+			"ssh_username": "{{ user `username` }}",
+			"ssh_password": "{{ user `password` }}",
 			"ssh_timeout": "{{ user `ssh_timeout` }}",
-			"shutdown_command": "echo 'ubuntu' | sudo -S shutdown -P now",
+			"shutdown_command": "echo '{{ user `password` }}' | sudo -S shutdown -P now",
 			"virtualbox_version_file": ".vbox_version"
 		},
 		{
@@ -97,7 +98,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"inline_shebang": "/bin/sh -eux",
 			"inline": [
 				"sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
@@ -108,7 +109,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"script": "src/scripts/linux/update.sh",
 			"expect_disconnect": true
 		},
@@ -117,7 +118,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"script": "src/scripts/linux/sudoers.sh"
 		},
 		{
@@ -126,7 +127,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"script": "src/scripts/linux/virtualbox.sh"
 		},
 		{
@@ -143,7 +144,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/cleanup.sh"
 			]
@@ -154,7 +155,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk_boot.sh"
 			]
@@ -164,7 +165,7 @@
 			"environment_vars": [
 				"DEBIAN_FRONTEND=noninteractive"
 			],
-			"execute_command": "chmod +x '{{ .Path }}'; echo 'ubuntu' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
 			"scripts": [
 				"src/scripts/linux/zerodisk.sh"
 			]
