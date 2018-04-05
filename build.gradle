@@ -218,6 +218,7 @@ task('buildToolsInstall') {
       )
     }
     exec {
+      environment << ['PIPENV_TIMEOUT': 300]
       commandLine(
         [
           'pipenv', 'install',
