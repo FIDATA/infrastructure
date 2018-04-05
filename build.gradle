@@ -218,7 +218,6 @@ task('buildToolsInstall') {
       )
     }
     exec {
-      workingDir chefDir
       commandLine(
         [
           'pipenv', 'install',
@@ -261,7 +260,6 @@ task('buildToolsOutdated') {
       ignoreExitValue true
     }
     exec {
-      workingDir chefDir
       commandLine(
         [
           'pipenv', 'update', '--dry-run',
@@ -324,7 +322,6 @@ task('buildToolsUpdate') {
     bundleUpdate()
     berksUpdate()
     exec {
-      workingDir chefDir
       commandLine(
         [
           'pipenv', '--update', 'update',
