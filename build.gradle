@@ -326,7 +326,7 @@ task('buildToolsUpdate') {
     exec {
       commandLine(
         [
-          'pipenv', '--update', 'update',
+          'pipenv', 'update',
           '--dev'
         ] +
         pipenvLogLevelArgs
