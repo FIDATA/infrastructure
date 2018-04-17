@@ -110,6 +110,9 @@ ext.with {
     }
     it
   }
+  berksEnvironment = [
+    'ARTIFACTORY_API_KEY': artifactoryPassword,
+  ]
   knifeLogLevelArgs = [].with {
     switch (logLevel) {
       case { it <= LogLevel.INFO }: push '--verbose'
@@ -207,6 +210,7 @@ task('buildToolsInstall') {
     }
     exec {
       workingDir chefDir
+      environment << berksEnvironment
       commandLine(
         [
           bundleExecutable, 'exec'
@@ -273,6 +277,7 @@ task('buildToolsOutdated') {
     }
     exec {
       workingDir chefDir
+      environment << berksEnvironment
       commandLine(
         [
           bundleExecutable, 'exec'
@@ -303,6 +308,7 @@ void bundleUpdate(List<String> gems = []) {
 void berksUpdate() {
   exec {
     workingDir chefDir
+    environment << berksEnvironment
     commandLine(
       [
         bundleExecutable, 'exec'

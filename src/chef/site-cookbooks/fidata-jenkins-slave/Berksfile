@@ -23,6 +23,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# BLOCKED: https://www.jfrog.com/confluence/display/RTF/Chef+Cookbook+Repositories#ChefCookbookRepositories-UsingtheBerkshelfCommandLine <>
-# source 'https://fidata.jfrog.io/fidata/api/chef/chef'
-source 'https://supermarket.chef.io'
+source artifactory: 'https://fidata.jfrog.io/fidata/api/chef/chef'
