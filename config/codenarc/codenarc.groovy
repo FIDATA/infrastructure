@@ -55,7 +55,7 @@ ruleset {
   }
   ruleset('rulesets/unnecessary.xml') {
     /* BLOCKED: https://github.com/CodeNarc/CodeNarc/issues/236
-       Problem with Apache 2 license notice <> */
+       Problem with Apache 2 license notice <grv87 2018-04-18> */
     UnnecessarySemicolon(enabled: false)
   }
   ruleset('rulesets/unused.xml')
