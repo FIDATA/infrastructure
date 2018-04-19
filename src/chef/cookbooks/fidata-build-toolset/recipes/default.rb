@@ -67,32 +67,6 @@ ruby_runtime '2' do
   options dev_package: true
 end
 
-home_directory = Pathname.new(node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir'])
-gem_home = home_directory + '.gems'
-directory gem_home do
-  user node['fidata']['build-toolset']['user']
-  group node['fidata']['build-toolset']['group']
-  mode '0700'
-end
-unless node['platform_family'] == 'windows'
-  ruby_block 'Set GEM_HOME in user\'s profile' do
-    block do
-      pam_environment = home_directory + '.pam_environment'
-      Resource::File.new(pam_environment, run_context).tap do |file|
-        file.owner node['fidata']['build-toolset']['user']
-        file.group node['fidata']['build-toolset']['group']
-        file.mode '0600'
-        file.run_action :create_if_missing
-      end
-      Chef::Util::FileEdit.new(pam_environment).tap do |file|
-        file.search_file_replace_line(/^GEM_HOME=/, "GEM_HOME=#{gem_home}")
-        file.insert_line_if_no_match(/^GEM_HOME=/, "GEM_HOME=#{gem_home}")
-        file.write_file
-      end
-    end
-  end
-end
-
 execute 'bundle config specific_platform true' do
   user node['fidata']['build-toolset']['user']
   group node['fidata']['build-toolset']['group']
