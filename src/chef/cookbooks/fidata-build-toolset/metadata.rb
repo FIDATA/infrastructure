@@ -36,7 +36,7 @@ supports         'debian'
 supports         'windows'
 chef_version     '~> 13.3' if respond_to?(:chef_version)
 depends          'java', '~> 1.50'
-depends          'git', '~> 8.0'
+depends          'git', '~> 9.0'
 depends          'cmake', '~> 0.4'
 depends          'poise-ruby', '~> 2.3'
 depends          'poise-python', '~> 1.6'
