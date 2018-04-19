@@ -59,7 +59,7 @@ end
 package 'gperf' unless node['platform_family'] == 'windows'
 
 node.default['cmake']['install_method'] = 'binary'
-node.default['cmake']['version'] = '3.9.1'
+node.default['cmake']['version'] = '3.11.0'
 include_recipe 'cmake::default'
 
 ruby_runtime '2' do
