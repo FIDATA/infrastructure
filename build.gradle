@@ -187,6 +187,7 @@ visteg {
 }
 
 task('buildToolsInstall') {
+  group 'Build Setup'
   doLast {
     exec {
       commandLine(
@@ -240,6 +241,7 @@ task('buildToolsInstall') {
 }
 
 task('buildToolsOutdated') {
+  group 'Build Setup'
   dependsOn 'dependencyUpdates'
   doLast {
     exec {
@@ -308,6 +310,7 @@ void berksUpdate() {
 }
 
 task('buildToolsUpdate') {
+  group 'Build Setup'
   mustRunAfter 'buildToolsInstall'
   dependsOn 'updateLock', 'saveLock', 'dependencyUpdates'
   doLast {
