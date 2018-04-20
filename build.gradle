@@ -186,7 +186,7 @@ visteg {
   endNodeShape   = 'doubleoctagon'
 }
 
-task('prerequisitesInstall') {
+task('buildToolsInstall') {
   doLast {
     exec {
       commandLine(
@@ -239,7 +239,7 @@ task('prerequisitesInstall') {
   }
 }
 
-task('prerequisitesOutdated') {
+task('buildToolsOutdated') {
   dependsOn 'dependencyUpdates'
   doLast {
     exec {
@@ -307,8 +307,8 @@ void berksUpdate() {
   }
 }
 
-task('prerequisitesUpdate') {
-  mustRunAfter 'prerequisitesInstall'
+task('buildToolsUpdate') {
+  mustRunAfter 'buildToolsInstall'
   dependsOn 'updateLock', 'saveLock', 'dependencyUpdates'
   doLast {
     bundleUpdate()
@@ -341,13 +341,13 @@ task('prerequisitesUpdate') {
 
 afterEvaluate {
   tasks.each { t ->
-    if (!(t.name =~ /^prerequisites/)) {
-      t.mustRunAfter 'prerequisitesInstall'
+    if (!(t.name =~ /^buildTools/)) {
+      t.mustRunAfter 'buildToolsInstall'
       if (t.name != 'updateLock' && t.name != 'saveLock') {
         t.mustRunAfter 'updateLock', 'saveLock'
       }
       if (t.name != 'dependencyUpdates' && t.name != 'updateLock' && t.name != 'saveLock') {
-        t.mustRunAfter 'prerequisitesUpdate'
+        t.mustRunAfter 'buildToolsUpdate'
       }
     }
   }

@@ -23,19 +23,19 @@ This repository contains:
 *	Ruby & Bundler (~> 1.14, tested with 1.15.4)
 *	Python 3 & [Pipenv](http://pipenv.org/)
 
-Before start you have to install required gems, packages, plugins
-and cookbooks:
+All other build tools (gems, packages, plugins and cookbooks) are
+installed by Gradle. You have to do this after repository clone:
 ```
-./gradlew prerequisitesInstall
+./gradlew buildToolsInstall
 ```
 
 When necessary you can check locked versions for updates with:
 ```
-./gradlew prerequisitesOutdated
+./gradlew buildToolsOutdated
 ```
 and update them with:
 ```
-./gradlew prerequisitesUpdate
+./gradlew buildToolsUpdate
 ```
 
 NOTE: Update of gems with exact version constraint (e.g. Chef)
