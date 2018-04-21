@@ -6,7 +6,7 @@
 # Cookbook Name:: fidata-build-toolkit
 # Metadata
 #
-# Copyright © 2016-2017  Basil Peace
+# Copyright © 2016-2018  Basil Peace
 #
 # This file is part of FIDATA Infrastructure.
 #
