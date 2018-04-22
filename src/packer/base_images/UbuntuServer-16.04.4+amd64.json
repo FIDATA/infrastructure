@@ -101,7 +101,7 @@
 			"execute_command": "chmod +x '{{ .Path }}'; echo '{{ user `password` }}' | sudo -S env {{ .Vars }} '{{ .Path }}'",
 			"inline_shebang": "/bin/sh -eux",
 			"inline": [
-				"sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
+				"sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' $HOME/.profile"
 			]
 		},
 		{
