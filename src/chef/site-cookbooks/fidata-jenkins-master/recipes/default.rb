@@ -184,7 +184,7 @@ directory plugins_directory do
   action :create
 end
 
-scm_sync_configuration_disabled_file = plugins_directory + 'scm-sync-configuration.jpi.disabled' # "#{run_context.resource_collection.find(jenkins_plugin: 'scm-sync-configuration').provider_for_action(:install).plugin_file}.disabled"
+scm_sync_configuration_disabled_file = plugins_directory + "#{run_context.resource_collection.find(jenkins_plugin: 'scm-sync-configuration').provider_for_action(:install).plugin_file}.disabled"
 file scm_sync_configuration_disabled_file do
   owner node['jenkins']['master']['user']
   group node['jenkins']['master']['group']
