@@ -23,6 +23,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+user 'jenkins' do
+  username node['fidata']['build-toolset']['user']
+  gid node['fidata']['build-toolset']['group']
+  manage_home true
+  action :create
+end
+
 directory Pathname.new(node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir']) do
   mode '0700'
 end
