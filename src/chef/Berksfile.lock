@@ -84,7 +84,7 @@ GRAPH
   poise-ruby (2.4.0)
     poise (~> 2.0)
     poise-languages (~> 2.0)
-  runit (4.0.4)
+  runit (4.1.0)
     packagecloud (>= 0.0.0)
     yum-epel (>= 0.0.0)
   seven_zip (2.0.2)
