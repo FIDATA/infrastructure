@@ -26,26 +26,27 @@
 include_recipe 'home_bundle_directory::default'
 
 if node['platform_family'] == 'windows'
-  chef_gem 'dotenv' do
-    compile_time true if respond_to?(:compile_time)
-  end
-  require 'dotenv'
-  env_filename = "#{ENV['TEMP']}\\.env"
-  batch 'generate_env_file' do
-    code <<~EOF
-      RefreshEnv
-      set > #{env_filename}
-    EOF
-    action :run
-  end
-  file env_filename do
-    action :nothing
-  end
+  # chef_gem 'dotenv' do
+  #   compile_time true if respond_to?(:compile_time)
+  # end
+  # require 'dotenv'
+  # env_filename = "#{ENV['TEMP']}\\.env"
+  # batch 'generate_env_file' do
+  #   code <<~EOF
+  #     RefreshEnv
+  #     set > #{env_filename}
+  #   EOF
+  #   action :run
+  # end
+  # file env_filename do
+  #   action :nothing
+  # end
   ruby_block 'refreshenv' do
     block do
-      run_context.resource_collection.find(batch: 'generate_env_file').run_action :run
-      Dotenv.overload(env_filename)
-      run_context.resource_collection.find(file: env_filename).run_action :delete
+      refresh_env
+      # run_context.resource_collection.find(batch: 'generate_env_file').run_action :run
+      # Dotenv.overload(env_filename)
+      # run_context.resource_collection.find(file: env_filename).run_action :delete
     end
     action :nothing
   end
