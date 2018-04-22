@@ -21,7 +21,7 @@ This repository contains:
 *	Vagrant and vagrant-cachier plugin
 *	Terraform (>= 0.11.7)
 *	Ruby & Bundler (~> 1.14, gems locked with 1.16.1)
-*	Python 3 & [Pipenv](http://pipenv.org/)
+*	Python 3 (3.6) & [Pipenv](http://pipenv.org/) (latest version)
 
 All other build tools (gems, packages, plugins and cookbooks) are
 installed by Gradle. You have to do this after repository clone:
