@@ -69,6 +69,7 @@ task wrapper(type: Wrapper) {
 LogLevel logLevel = (logging.level ?: gradle.startParameter.logLevel)
 
 ext.with {
+  debug = logLevel <= LogLevel.DEBUG
   bundleExecutable = OperatingSystem.current().windows ? 'bundle.bat' : 'bundle'
   bundleLogLevelArgs = [].with {
     if (logLevel <= LogLevel.INFO) {
@@ -428,6 +429,7 @@ ext.with {
     'AWS_SECRET_ACCESS_KEY': awsSecretKey,
     'KITCHEN_SSH_KEY': kitchenSSHPrivateKey.absolutePath,
     'ENCRYPTED_DATA_BAG_SECRET': encryptedDataBagSecret.absolutePath,
+    'DEBUG': debug ? '1' : '0',
   ]
 
   Map terraformVariables = [
@@ -796,6 +798,7 @@ task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
     environment << kitchenEnvironment
   }
   commandLine(
+    (debug ? [consoleExecutable] + consoleArgs : []) +
     [
       'bundle', 'exec'
     ] +
@@ -819,6 +822,7 @@ task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
     environment << kitchenEnvironment
   }
   commandLine(
+    (debug ? [consoleExecutable] + consoleArgs : []) +
     [
       'bundle', 'exec'
     ] +
