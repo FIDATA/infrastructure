@@ -1271,6 +1271,10 @@ task('terraformApply-instances') {
   outputs.upToDateWhen { false }
 }
 
+dependencies {
+  codenarc 'org.codenarc:CodeNarc:1.1'
+}
+
 task('codenarc', type: CodeNarc) {
   group 'Test'
   source 'Jenkinsfile'
