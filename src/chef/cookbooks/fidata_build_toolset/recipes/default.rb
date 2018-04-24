@@ -25,28 +25,12 @@
 
 include_recipe 'home_bundle_directory::default'
 
+execute 'choco config set webRequestTimeoutSeconds 60'
+
 if node['platform_family'] == 'windows'
-  # chef_gem 'dotenv' do
-  #   compile_time true if respond_to?(:compile_time)
-  # end
-  # require 'dotenv'
-  # env_filename = "#{ENV['TEMP']}\\.env"
-  # batch 'generate_env_file' do
-  #   code <<~EOF
-  #     RefreshEnv
-  #     set > #{env_filename}
-  #   EOF
-  #   action :run
-  # end
-  # file env_filename do
-  #   action :nothing
-  # end
   ruby_block 'refreshenv' do
     block do
       refresh_env
-      # run_context.resource_collection.find(batch: 'generate_env_file').run_action :run
-      # Dotenv.overload(env_filename)
-      # run_context.resource_collection.find(file: env_filename).run_action :delete
     end
     action :nothing
   end
@@ -124,17 +108,6 @@ else
   chocolatey_package 'ruby2.devkit' do
     notifies :run, 'ruby_block[refreshenv]', :immediately
   end
-  execute 'gem install bundler' do
-    notifies :run, 'ruby_block[refreshenv]', :immediately
-  end
-  # gem_package 'bundler'
-  # ruby_runtime 'system' do
-  #   provider :system
-  #   action :nothing
-  # end
-  # ruby_gem 'bundler' do
-  #   ruby 'system'
-  # end
 end
 
 execute 'bundle config specific_platform true' do
@@ -159,8 +132,12 @@ else
   end
 end
 
-python_package 'pipenv' do
-  python '3.5' if node['platform_family'] != 'windows'
+if node['platform_family'] != 'windows'
+  python_package 'pipenv' do
+    python '3.5' if node['platform_family'] != 'windows'
+  end
+else
+  execute 'pip install pipenv'
 end
 
 case node['platform_family']
@@ -179,7 +156,11 @@ when 'windows'
   chocolatey_package 'doxygen.install'
 end
 
-include_recipe 'pandoc::default'
+if node['platform_family'] != 'windows'
+  include_recipe 'pandoc::default'
+else
+  chocolatey_package 'pandoc'
+end
 
 include_recipe 'texlive::default'
 

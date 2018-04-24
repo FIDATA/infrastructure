@@ -37,7 +37,6 @@ supports         'windows'
 chef_version     '~> 13.3' if respond_to?(:chef_version)
 depends          'home_bundle_directory', '~> 1.0.0'
 depends          'java', '~> 2.0'
-gem              'dotenv', '~> 2.2'
 depends          'git', '~> 9.0'
 depends          'cmake', '~> 0.4'
 depends          'poise-ruby', '~> 2.3'
