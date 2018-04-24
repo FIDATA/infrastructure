@@ -1,7 +1,7 @@
 DEPENDENCIES
   cmake
     git: https://github.com/FIDATA/cookbook-cmake.git
-    revision: 281003863365a0a95c4e56c4aadd5bc26bbf140e
+    revision: b6e96bba2b4a3dafa17fa33a36048bfba9b017d4
     branch: develop
   fidata-build-toolset
     path: cookbooks/fidata-build-toolset
@@ -84,12 +84,12 @@ GRAPH
   poise-ruby (2.4.0)
     poise (~> 2.0)
     poise-languages (~> 2.0)
-  runit (4.1.0)
+  runit (4.1.1)
     packagecloud (>= 0.0.0)
     yum-epel (>= 0.0.0)
   seven_zip (2.0.2)
     windows (>= 1.2.2)
   ssh (0.10.24)
   texlive (0.2.1)
-  windows (4.2.1)
+  windows (4.2.2)
   yum-epel (3.1.0)
