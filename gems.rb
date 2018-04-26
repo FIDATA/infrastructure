@@ -46,6 +46,10 @@ group :test do
   # https://github.com/WinRb/winrm-fs/pull/64
   # <grv87 2018-03-30>
   gem 'winrm-fs', git: 'https://github.com/FIDATA/winrm-fs', branch: 'master'
+  # WORKAROUND:
+  # TODO
+  # <grv87 2018-04-25>
+  gem 'train', '0.30.0'
 end
 
 group :lint do

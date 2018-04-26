@@ -910,10 +910,10 @@ task('kitchenLogin-BuildToolset') {
   outputs.upToDateWhen { false }
 }
 
-task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
+task('kitchenVerify-BuildToolset-Ubuntu', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'kitchenConverge-BuildToolset'
-  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common'
+  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon', 'kitchenConverge-BuildToolset-Ubuntu'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -925,7 +925,30 @@ task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
     bundleLogLevelArgs +
     [
       'kitchen', 'verify',
-      'BuildToolset',
+      'BuildToolset-Ubuntu',
+      '-c', '--no-log-overwrite'
+    ] +
+    kitchenLogLevelArgs
+  )
+  outputs.upToDateWhen { false }
+}
+
+task('kitchenVerify-BuildToolset-Windows', type: CrossPlatformExec) {
+  group 'Test'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'terraformOutput-common'
+  mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon', 'kitchenConverge-BuildToolset-Windows'
+  workingDir chefDir
+  doFirst {
+    environment << kitchenEnvironment
+  }
+  commandLine(
+    [
+      'bundle', 'exec'
+    ] +
+    bundleLogLevelArgs +
+    [
+      'kitchen', 'verify',
+      'BuildToolset-Windows',
       '-c', '--no-log-overwrite'
     ] +
     kitchenLogLevelArgs

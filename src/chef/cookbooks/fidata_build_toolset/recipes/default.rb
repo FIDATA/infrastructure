@@ -25,12 +25,12 @@
 
 include_recipe 'home_bundle_directory::default'
 
-execute 'choco config set webRequestTimeoutSeconds 60'
+execute 'choco config set webRequestTimeoutSeconds 60' if node['platform_family'] == 'windows'
 
 if node['platform_family'] == 'windows'
   ruby_block 'refreshenv' do
     block do
-      refresh_env
+      refreshenv
     end
     action :nothing
   end
@@ -70,8 +70,12 @@ when 'debian'
   package 'g++'
   package 'make'
 when 'windows'
-  chocolatey_package 'visualstudio2017buildtools'
-  chocolatey_package 'visualstudio2017-workload-vctools'
+  chocolatey_package 'visualstudio2017buildtools' do
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
+  chocolatey_package 'visualstudio2017-workload-vctools' do
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
 end
 
 package 'gfortran' unless node['platform_family'] == 'windows'
@@ -80,7 +84,9 @@ case node['platform_family']
 when 'debian'
   package 'diffutils'
 when 'windows'
-  chocolatey_package 'diffutils'
+  chocolatey_package 'diffutils' do
+    notifies :run, 'ruby_block[refreshenv]', :immediately
+  end
 end
 
 case node['platform_family']
@@ -108,6 +114,7 @@ else
   chocolatey_package 'ruby2.devkit' do
     notifies :run, 'ruby_block[refreshenv]', :immediately
   end
+  execute 'gem install bundler'
 end
 
 execute 'bundle config specific_platform true' do
@@ -162,7 +169,11 @@ else
   chocolatey_package 'pandoc'
 end
 
-include_recipe 'texlive::default'
+if node['platform_family'] != 'windows'
+  include_recipe 'texlive::default'
+else
+  chocolatey_package 'miktex'
+end
 
 case node['platform_family']
 when 'fedora', 'rhel', 'freebsd', 'debian', 'mac_os_x'
@@ -203,7 +214,7 @@ when 'mac_os_x'
   package 'openjade'
   package 'opensp'
 when 'windows'
-  package 'docbook-bundle'
+  chocolatey_package 'docbook-bundle'
 end
 
 include_recipe 'imagemagick::default'
@@ -219,7 +230,7 @@ if node['platform_family'] != 'windows'
     end
   end
 else
-  env 'IMCONV' do
-    # TODO
-  end
+  # env 'IMCONV' do
+  #
+  # end
 end
