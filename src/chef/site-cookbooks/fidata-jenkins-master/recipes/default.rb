@@ -37,6 +37,8 @@
 #     ```
 # <>
 
+include_recipe 'home_bundle_directory::default'
+
 node.default.tap do |default|
   default['fidata'].tap do |fidata|
     fidata['chef'] = data_bag_item('runtime', 'FIDATAChef').to_hash

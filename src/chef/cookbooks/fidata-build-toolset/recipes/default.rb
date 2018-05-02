@@ -23,6 +23,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include_recipe 'home_bundle_directory::default'
+
 if node['platform_family'] == 'debian'
   apt_update 'apt_update' do
     action :update

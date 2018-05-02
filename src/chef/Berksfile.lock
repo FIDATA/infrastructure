@@ -9,6 +9,8 @@ DEPENDENCIES
     path: site-cookbooks/fidata-jenkins-master
   fidata-jenkins-slave
     path: site-cookbooks/fidata-jenkins-slave
+  home_bundle_directory
+    path: cookbooks/home_bundle_directory
   texlive
     git: https://github.com/FIDATA/cookbook-texlive.git
     revision: 8643b9850db708ed31f0e3cb4c6a543cbffa68c4
@@ -31,6 +33,7 @@ GRAPH
   fidata-build-toolset (2.0.0)
     cmake (~> 0.4)
     git (~> 9.0)
+    home_bundle_directory (~> 1.0.0)
     imagemagick (~> 0.2)
     java (~> 1.50)
     nodejs (~> 5.0)
@@ -42,6 +45,7 @@ GRAPH
   fidata-jenkins-master (3.0.0)
     apache2 (~> 5.0)
     git (~> 9.0)
+    home_bundle_directory (~> 1.0.0)
     java (~> 1.50)
     jenkins (~> 6.0)
     octokit (~> 0.1)
@@ -50,6 +54,7 @@ GRAPH
     fidata-build-toolset (>= 0.0.0)
   git (9.0.0)
     build-essential (>= 5.0.0)
+  home_bundle_directory (1.0.0)
   homebrew (5.0.4)
   imagemagick (0.2.3)
   java (1.50.0)
