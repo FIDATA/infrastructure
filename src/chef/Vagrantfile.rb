@@ -49,15 +49,18 @@ Vagrant.configure('2') do |config|
       # fix permissions
       # see https://github.com/mitchellh/vagrant/issues/2257
       # see https://github.com/test-kitchen/test-kitchen/issues/671
-      config.vm.provision 'shell' do |s|
-        s.env = {
-          'DEBIAN_FRONTEND' => 'noninteractive'
-        }
-        s.inline = <<-EOF.gsub(/ ^{10}/, '')
-          chown -R ubuntu:ubuntu /tmp/busser
-          chown -R ubuntu:ubuntu /tmp/verifier
-          chown -R ubuntu:ubuntu /tmp/kitchen
-        EOF
+      unless config.vm.guest == :windows
+        config.vm.provision 'shell' do |s|
+          s.env = {
+            'DEBIAN_FRONTEND' => 'noninteractive'
+          }
+          s.path = '../scripts/linux/vagrant_cachier.sh'
+          # s.inline = <<~EOF
+          #   chown -R $SUDO_UID:$SUDO_GID /tmp/busser;
+          #   chown -R $SUDO_UID:$SUDO_GID /tmp/verifier;
+          #   chown -R $SUDO_UID:$SUDO_GID /tmp/kitchen;
+          # EOF
+        end
       end
     end
   end
