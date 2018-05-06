@@ -34,7 +34,7 @@ issues_url       'https://github.com/FIDATA/infrastructure/issues'
 supports         'ubuntu', '>= 16.04'
 chef_version     '~> 13.3' if respond_to?(:chef_version)
 depends          'home_bundle_directory', '~> 1.0.0'
-depends          'java', '~> 1.50'
+depends          'java', '~> 2.0'
 depends          'apache2', '~> 5.0'
 depends          'jenkins', '~> 6.0'
 depends          'git', '~> 9.0'

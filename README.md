@@ -20,7 +20,7 @@ This repository contains:
 *	Packer
 *	Vagrant and vagrant-cachier plugin
 *	Terraform (>= 0.11.7)
-*	Ruby & Bundler (~> 1.14, gems locked with 1.16.1)
+*	Ruby (>= 2.4) & Bundler (~> 1.14, gems locked with 1.16.1)
 *	Python 3 (3.6) & [Pipenv](http://pipenv.org/) (latest version)
 
 All other build tools (gems, packages, plugins and cookbooks) are

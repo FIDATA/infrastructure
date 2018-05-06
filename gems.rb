@@ -33,7 +33,7 @@ group :build do
   gem 'chef', '13.8.5'
   gem 'knife-solo_data_bag', '~> 2.1'
   gem 'thor', '~> 0.19'
-  gem 'berkshelf', '~> 6.3'
+  gem 'berkshelf', '~> 7.0'
   gem 'knife-art', '~> 1.0'
 end
 
@@ -47,6 +47,6 @@ end
 group :lint do
   gem 'rubocop', '~> 0.49'
   gem 'rubocop-checkstyle_formatter', '~> 0.4'
-  gem 'foodcritic', '~> 12.1'
+  gem 'foodcritic', '~> 13.0'
   gem 'cookstyle', '~> 2.1'
 end
