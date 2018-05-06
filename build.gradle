@@ -577,8 +577,10 @@ task('generateSSHKey-Kitchen', type: GenerateSSHKeyTask) {
 }
 
 task('terraformValidate-common', type: Exec) {
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
-  inputs.files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
+  inputs.with {
+    property 'terraformVariablesForArgs', terraformVariablesForArgs
+    files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
+  }
   workingDir "$terraformDir/common"
   environment << terraformEnvironment
   commandLine(
@@ -591,8 +593,10 @@ task('terraformValidate-common', type: Exec) {
 
 task('terraformDestroy-common') {
   mustRunAfter 'terraformValidate-common'
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
-  inputs.files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
+  inputs.with {
+    inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
+    inputs.files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
+  }
   File outputFile = file("$terraformOutputDir/common.json")
   doLast {
     exec {
@@ -624,8 +628,8 @@ task('terraformApply-common') {
   group 'Build'
   dependsOn 'generateSSHKey-FIDATAMain', 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins', 'createTerraformOutputDir'
   mustRunAfter 'terraformValidate-common', 'terraformDestroy-common'
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.with {
+    property 'terraformVariablesForArgs', terraformVariablesForArgs
     files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
     file tasks['generateSSHKey-FIDATAMain'].publicKeyFile
     file tasks['generateSSHKey-FIDATAJenkins'].publicKeyFile
@@ -1207,8 +1211,10 @@ tasks['build-JenkinsMaster'].with {
 }
 
 task('terraformValidate-instances', type: Exec) {
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
-  inputs.files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  inputs.with {
+    property 'terraformVariablesForArgs', terraformVariablesForArgs
+    files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  }
   workingDir "$terraformDir/instances"
   environment << terraformEnvironment
   commandLine(
@@ -1221,8 +1227,10 @@ task('terraformValidate-instances', type: Exec) {
 
 task('terraformDestroy-instances') {
   mustRunAfter 'terraformValidate-instances'
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
-  inputs.files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  inputs.with {
+    property 'terraformVariablesForArgs', terraformVariablesForArgs
+    files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  }
   doLast {
     exec {
       workingDir "$terraformDir/instances"
@@ -1242,8 +1250,10 @@ task('terraformDestroy-instances') {
 task('terraformApply-instances') {
   group 'Build'
   mustRunAfter 'terraformValidate-instances', 'terraformDestroy-instances', 'build-JenkinsMaster'
-  inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
-  inputs.files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  inputs.with {
+    property 'terraformVariablesForArgs', terraformVariablesForArgs
+    files new FileNameFinder().getFileNames("$terraformDir/instances", '*.tf *.tf.json')
+  }
   doLast {
     exec {
       workingDir "$terraformDir/instances"
