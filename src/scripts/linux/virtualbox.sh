@@ -21,7 +21,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VER="`cat /etc/.vbox_version`";
+VER=$(< /etc/.vbox_version);
 
 echo "VirtualBox Tools Version: $VER";
 
