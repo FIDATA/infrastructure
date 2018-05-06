@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-jenkins-master
+# Cookbook Name:: fidata_jenkins_master
 # Metadata
 #
 # Copyright © 2016-2018  Basil Peace
@@ -23,13 +23,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name             'fidata-jenkins-master'
+name             'fidata_jenkins_master'
 maintainer       'Basil Peace'
 maintainer_email 'grv87@yandex.ru'
 license          'Apache-2.0'
 description      'Configures FIDATA Jenkins Master'
 version          '3.0.0'
-source_url       'https://github.com/FIDATA/infrastructure/tree/src/chef/site-cookbooks/fidata-jenkins-master'
+source_url       'https://github.com/FIDATA/infrastructure/tree/src/chef/site-cookbooks/fidata_jenkins_master'
 issues_url       'https://github.com/FIDATA/infrastructure/issues'
 supports         'ubuntu', '>= 16.04'
 chef_version     '~> 13.3' if respond_to?(:chef_version)

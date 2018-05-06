@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-jenkins-master
+# Cookbook Name:: fidata_jenkins_master
 # Berksfile
 #
 # Copyright © 2016-2018  Basil Peace

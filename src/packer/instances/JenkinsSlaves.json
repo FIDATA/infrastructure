@@ -88,7 +88,7 @@
 			"environments_path": "{{ user `chef_dir` }}/environments",
 			"chef_environment": "production",
 			"run_list": [
-				"recipe[fidata-jenkins-slave::default]"
+				"recipe[fidata_jenkins_slave::default]"
 			]
 		},
 		{

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolset
+# Cookbook Name:: fidata_build_toolset
 # Recipe:: default
 #
 # Copyright © 2015-2018  Basil Peace

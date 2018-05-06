@@ -93,7 +93,7 @@
 				}
 			},
 			"run_list": [
-				"recipe[fidata-jenkins-master::default]"
+				"recipe[fidata_jenkins_master::default]"
 			]
 		},
 		{

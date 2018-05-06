@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-jenkins-slave
-# Recipe:: default
+# Cookbook Name:: fidata_jenkins_slave
+# Berksfile
 #
-# Copyright © 2015-2018  Basil Peace
+# Copyright © 2016-2018  Basil Peace
 #
 # This file is part of FIDATA Infrastructure.
 #
@@ -23,15 +23,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-directory Pathname.new(node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir']) do
-  mode '0700'
-end
-
-include_recipe 'fidata-build-toolset::default'
-
-directory Pathname.new('/srv/jenkins') do
-  user node['fidata']['build-toolset']['user']
-  group node['fidata']['build-toolset']['group']
-  recursive true
-  mode '0700'
-end
+source artifactory: 'https://fidata.jfrog.io/fidata/api/chef/chef'

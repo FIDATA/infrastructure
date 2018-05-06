@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-jenkins-master
+# Cookbook Name:: fidata_jenkins_master
 # Recipe:: default
 #
 # Copyright © 2015-2018  Basil Peace

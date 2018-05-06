@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: fidata-build-toolset
-# Berksfile
+# Cookbook Name:: fidata_jenkins_slave
+# Recipe:: default
 #
-# Copyright © 2016-2018  Basil Peace
+# Copyright © 2015-2018  Basil Peace
 #
 # This file is part of FIDATA Infrastructure.
 #
@@ -23,7 +23,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source artifactory: 'https://fidata.jfrog.io/fidata/api/chef/chef'
+directory Pathname.new(node['etc']['passwd'][node['fidata']['build-toolset']['user']]['dir']) do
+  mode '0700'
+end
 
-cookbook 'texlive', github: 'FIDATA/cookbook-texlive', branch: 'develop'
-cookbook 'cmake', github: 'FIDATA/cookbook-cmake', branch: 'develop'
+include_recipe 'fidata_build_toolset::default'
+
+directory Pathname.new('/srv/jenkins') do
+  user node['fidata']['build-toolset']['user']
+  group node['fidata']['build-toolset']['group']
+  recursive true
+  mode '0700'
+end

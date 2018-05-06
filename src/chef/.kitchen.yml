@@ -79,7 +79,7 @@ suites:
       solo_rb:
         node_name: BuildToolset-Ubuntu16.04.4_amd64
     run_list:
-      - recipe[fidata-build-toolset::default]
+      - recipe[fidata_build_toolset::default]
     verifier:
       inspec_tests:
         - git: https://github.com/FIDATA/build-environment
@@ -101,7 +101,7 @@ suites:
         environment: test-vbox
         node_name: JenkinsMaster
     run_list:
-      - recipe[fidata-jenkins-master::default]
+      - recipe[fidata_jenkins_master::default]
   - name: JenkinsMaster-amazon
     includes:
       - UbuntuServer-16.04.4+amd64-amazon
@@ -121,4 +121,4 @@ suites:
         environment: test-amazon
         node_name: jenkins.fidata.org
     run_list:
-      - recipe[fidata-jenkins-master::default]
+      - recipe[fidata_jenkins_master::default]
