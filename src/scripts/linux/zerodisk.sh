@@ -1,7 +1,7 @@
 #!/bin/sh -eux
 
 # Erase empty space on root partition
-# Copyright © 2017  Basil Peace
+# Copyright © 2017-2018  Basil Peace
 # Based on script from Chef Bento
 # Copyright 2012-2016, Chef Software, Inc. (<legal@chef.io>)
 # Copyright 2011-2012, Tim Dysinger (<tim@dysinger.net>)
