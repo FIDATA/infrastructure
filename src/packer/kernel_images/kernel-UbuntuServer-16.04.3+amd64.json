@@ -93,7 +93,8 @@
 		"ssh_password": "{{ user `password` }}",
 		"ssh_timeout": "{{ user `ssh_timeout` }}",
 		"shutdown_command": "echo '{{ user `password` }}' | sudo -S shutdown -P now",
-		"post_shutdown_delay": "2m"
+		"post_shutdown_delay": "2m",
+		"virtualbox_version_file": ""
 	}],
 	"provisioners": [
 		{

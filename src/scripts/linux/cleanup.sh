@@ -65,8 +65,6 @@ apt-get -y purge popularity-contest installation-report command-not-found comman
 apt-get -y autoremove;
 apt-get -y clean;
 
-rm -f VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?;
-
 # Remove docs
 rm -rf /usr/share/doc/*
 

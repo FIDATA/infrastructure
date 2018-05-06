@@ -21,17 +21,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VER="`cat /home/ubuntu/.vbox_version`";
+VER="`cat /etc/.vbox_version`";
 
-echo "Virtualbox Tools Version: $VER";
+echo "VirtualBox Tools Version: $VER";
 
 apt-get -y install build-essential linux-headers-generic linux-headers-$(uname -r)
 
-mkdir -p /tmp/vbox;
-mount -o loop /home/ubuntu/VBoxGuestAdditions_${VER}.iso /tmp/vbox;
-sh /tmp/vbox/VBoxLinuxAdditions.run
-umount /tmp/vbox;
-rm -rf /tmp/vbox;
-rm -f /home/ubuntu/*.iso;
+mount -o loop /tmp/VBoxGuestAdditions.iso /mnt;
+sh /mnt/VBoxLinuxAdditions.run
+umount /mnt;
+rm -f /tmp/VBoxGuestAdditions*.iso /tmp/VBoxGuestAdditions*.iso.?;
 
 apt-get -y purge build-essential linux-headers-generic linux-headers-$(uname -r)
