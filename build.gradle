@@ -164,6 +164,7 @@ ext.with {
   berksVendorDir = file('build/berks-cookbooks')
   vagrantDir = file('src/vagrant')
   terraformDir = file('src/terraform')
+  terraformOutputDir = file('build/terraform')
   encryptedDataBagSecret = file(encryptedDataBagSecret)
   keysDir = file('build/keys')
   fidataMainSSHPrivateKey = file("$keysDir/fidata-main")
@@ -592,6 +593,7 @@ task('terraformDestroy-common') {
   mustRunAfter 'terraformValidate-common'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.files new FileNameFinder().getFileNames("$terraformDir/common", '*.tf *.tf.json')
+  File outputFile = file("$terraformOutputDir/common.json")
   doLast {
     exec {
       workingDir "$terraformDir/common"
@@ -605,12 +607,22 @@ task('terraformDestroy-common') {
         terraformVariablesForArgs
       )
     }
+    outputFile.delete()
+  }
+}
+
+task('createTerraformOutputDir') {
+  doLast {
+    terraformOutputDir.mkdirs()
+  }
+  outputs.upToDateWhen {
+    terraformOutputDir.exists()
   }
 }
 
 task('terraformApply-common') {
   group 'Build'
-  dependsOn 'generateSSHKey-FIDATAMain', 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins'
+  dependsOn 'generateSSHKey-FIDATAMain', 'generateSSHKey-Kitchen', 'generateSSHKey-FIDATAJenkins', 'createTerraformOutputDir'
   mustRunAfter 'terraformValidate-common', 'terraformDestroy-common'
   inputs.property 'terraformVariablesForArgs', terraformVariablesForArgs
   inputs.with {
@@ -619,6 +631,7 @@ task('terraformApply-common') {
     file tasks['generateSSHKey-FIDATAJenkins'].publicKeyFile
     file tasks['generateSSHKey-Kitchen'].publicKeyFile
   }
+  File outputFile = file("$terraformOutputDir/common.json")
   doLast {
     exec {
       workingDir "$terraformDir/common"
@@ -633,14 +646,7 @@ task('terraformApply-common') {
         terraformVariablesForArgs
       )
     }
-  }
-}
-
-task('terraformOutput-common') {
-  dependsOn 'terraformApply-common'
-  mustRunAfter 'terraformValidate-common'
-  doLast {
-    new ByteArrayOutputStream().withStream { os ->
+    new FileOutputStream(outputFile).withStream { os ->
       exec {
         workingDir "$terraformDir/common"
         environment << terraformEnvironment
@@ -650,8 +656,17 @@ task('terraformOutput-common') {
         ])
         standardOutput = os
       }
-      terraformOutputs << new JsonSlurper().parseText(os.toString())
     }
+  }
+  outputs.file outputFile
+}
+
+task('parseTerraformOutput-common') {
+  dependsOn 'terraformApply-common'
+  File outputFile = file("$terraformOutputDir/common.json")
+  inputs.file outputFile
+  doLast {
+    terraformOutputs << new JsonSlurper().parse(outputFile)
     kitchenEnvironment << [
       'AWS_SUBNET_ID': terraformOutputs['fidata_subnet_id']['value'],
     ]
@@ -776,7 +791,7 @@ task('berksVendor') {
 
 task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common', 'berksUpdate'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'berksUpdate'
   mustRunAfter 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -799,7 +814,7 @@ task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -822,7 +837,7 @@ task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenLogin-BuildToolset') {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-BuildToolset'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -846,7 +861,7 @@ task('kitchenLogin-BuildToolset') {
 
 task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common', 'kitchenConverge-BuildToolset'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'kitchenConverge-BuildToolset'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -869,7 +884,7 @@ task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -890,12 +905,12 @@ task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
 }
 
 tasks['build-JenkinsSlaves'].with {
-  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'berksVendor'
+  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'berksVendor'
   mustRunAfter 'build-base', 'build-base-amazon', 'kitchenTest-BuildToolset', 'kitchenConverge-BuildToolset'
 }
 
 task('generateRuntimeDataBag') {
-  dependsOn 'terraformOutput-common', 'generateSSHKey-FIDATAChef', 'generateSSHKey-FIDATAJenkins'
+  dependsOn 'parseTerraformOutput-common', 'generateSSHKey-FIDATAChef', 'generateSSHKey-FIDATAJenkins'
   mustRunAfter 'build-JenkinsSlaves'
   inputs.with {
     file encryptedDataBagSecret
@@ -1008,7 +1023,7 @@ task('generateRuntimeDataBag') {
 
 task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  dependsOn 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
@@ -1030,7 +1045,7 @@ task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
@@ -1052,7 +1067,7 @@ task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common', 'generateRuntimeDataBag'
+  dependsOn 'parseTerraformOutput-common', 'generateRuntimeDataBag'
   mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
@@ -1074,7 +1089,7 @@ task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag'
+  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag'
   mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
@@ -1096,7 +1111,7 @@ task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 task('kitchenLogin-JenkinsMaster-vbox') {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-JenkinsMaster-vbox'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -1120,7 +1135,7 @@ task('kitchenLogin-JenkinsMaster-vbox') {
 
 task('kitchenLogin-JenkinsMaster-amazon') {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-JenkinsMaster-amazon'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -1144,7 +1159,7 @@ task('kitchenLogin-JenkinsMaster-amazon') {
 
 task('kitchenDestroy-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1166,7 +1181,7 @@ task('kitchenDestroy-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1187,7 +1202,7 @@ task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
 }
 
 tasks['build-JenkinsMaster'].with {
-  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'terraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
+  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
 }
 
@@ -1271,7 +1286,7 @@ task('codenarc', type: CodeNarc) {
 
 task('kitchenDiagnose', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformOutput-common'
+  dependsOn 'parseTerraformOutput-common'
   outputs.upToDateWhen { false }
   workingDir chefDir
   doFirst {
