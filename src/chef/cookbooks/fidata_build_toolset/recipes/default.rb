@@ -65,7 +65,8 @@ node.default['cmake']['version'] = '3.11.0'
 include_recipe 'cmake::default'
 
 ruby_runtime '2' do
-  version '2.3'
+  provider :ruby_build
+  version '2.4'
   options dev_package: true
 end
 
