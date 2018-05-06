@@ -2,7 +2,7 @@
 # coding: utf-8
 # frozen_string_literal: true
 
-# Script to get file contents in JSON format
+# Script to get file content in JSON format
 # Copyright © 2017-2018  Basil Peace
 #
 # This file is part of FIDATA Infrastructure.
@@ -24,11 +24,11 @@ require 'json'
 require 'thor'
 
 # CLI
-class GetFileContentsInJSONFormat < Thor
-  desc 'get path', 'Get file contents in JSON format'
+class GetFileContentInJSONFormat < Thor
+  desc 'get path', 'Get file content in JSON format'
   def get(path)
-    puts JSON.generate(contents: Pathname.new(path).read)
+    puts JSON.generate(content: Pathname.new(path).read)
   end
 end
 
-GetFileContentsInJSONFormat.start(ARGV) if $PROGRAM_NAME == __FILE__
+GetFileContentInJSONFormat.start(ARGV) if $PROGRAM_NAME == __FILE__

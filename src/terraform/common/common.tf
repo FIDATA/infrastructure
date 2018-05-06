@@ -331,40 +331,40 @@ data "external" "fidata_main_ssh_key" {
   program = [
     "bundle", "exec",
     "ruby",
-    "${var.lib_dir}/get_file_contents_in_json_format.rb",
+    "${var.lib_dir}/get_file_content_in_json_format.rb",
     "get",
     "${var.keys_dir}/fidata-main.pub"
   ]
 }
 resource "aws_key_pair" "fidata_main" {
   key_name = "fidata-main"
-  public_key = "${data.external.fidata_main_ssh_key.result.contents}"
+  public_key = "${data.external.fidata_main_ssh_key.result.content}"
 }
 
 data "external" "fidata_jenkins_ssh_key" {
   program = [
     "bundle", "exec",
     "ruby",
-    "${var.lib_dir}/get_file_contents_in_json_format.rb",
+    "${var.lib_dir}/get_file_content_in_json_format.rb",
     "get",
     "${var.keys_dir}/fidata-jenkins.pub"
   ]
 }
 resource "aws_key_pair" "fidata_jenkins" {
   key_name = "fidata-jenkins"
-  public_key = "${data.external.fidata_jenkins_ssh_key.result.contents}"
+  public_key = "${data.external.fidata_jenkins_ssh_key.result.content}"
 }
 
 data "external" "kitchen_ssh_key" {
   program = [
     "bundle", "exec",
     "ruby",
-    "${var.lib_dir}/get_file_contents_in_json_format.rb",
+    "${var.lib_dir}/get_file_content_in_json_format.rb",
     "get",
     "${var.keys_dir}/kitchen.pub"
   ]
 }
 resource "aws_key_pair" "kitchen" {
   key_name = "kitchen"
-  public_key = "${data.external.kitchen_ssh_key.result.contents}"
+  public_key = "${data.external.kitchen_ssh_key.result.content}"
 }
