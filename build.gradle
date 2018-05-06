@@ -153,6 +153,8 @@ ext.with {
   consoleArgs = OperatingSystem.current().windows ? ['/c', 'start', 'cmd', '/k']: ['--disable-factory', '-e']
 
   gemfile = file('gems.rb')
+  gemfileLock = file('gems.locked')
+  chefVersion = file("$buildDir/chef_version")
   libDir = file('src/lib')
   videocaptureDir = file('build/videocapture')
   vboxOutputDir = file('build/vbox')
@@ -198,8 +200,20 @@ visteg {
   endNodeShape   = 'doubleoctagon'
 }
 
-task('buildToolsInstall') {
-  group 'Build Setup'
+boolean bundleDoctor() {
+  exec({
+    commandLine(
+      [
+        bundleExecutable, 'doctor'
+      ] +
+      bundleLogLevelArgs
+    )
+    ignoreExitValue = true
+  }).exitValue == 0
+}
+
+task('bundleInstall') {
+  inputs.file gemfile
   doLast {
     exec {
       commandLine(
@@ -209,6 +223,17 @@ task('buildToolsInstall') {
         bundleLogLevelArgs
       )
     }
+  }
+  outputs.with {
+    file gemfileLock
+    upToDateWhen { bundleDoctor() }
+  }
+}
+
+task('buildToolsInstall') {
+  group 'Build Setup'
+  dependsOn 'bundleInstall'
+  doLast {
     exec {
       workingDir chefDir
       environment << berksEnvironment
@@ -369,36 +394,33 @@ afterEvaluate {
   }
 }
 
-new ByteArrayOutputStream().withStream { os ->
-  exec {
-    commandLine(
-      [
-        bundleExecutable, 'exec'
-      ] +
-      bundleLogLevelArgs +
-      [
-        'ruby'
-      ] +
-      rubyLogLevelArgs +
-      [
-        '--',
-        "$libDir/get_gem_locked_version.rb",
-        'get', 'chef'
-      ]
-    )
-    standardOutput = os
+task('getChefVersion') {
+  dependsOn 'bundleInstall'
+  inputs.file gemfile
+  inputs.file gemfileLock
+  doLast {
+    new FileOutputStream(chefVersion).withStream { os ->
+      exec {
+        commandLine(
+          [
+            bundleExecutable, 'exec'
+          ] +
+          bundleLogLevelArgs +
+          [
+            'ruby'
+          ] +
+          rubyLogLevelArgs +
+          [
+            '--',
+            "$libDir/get_gem_locked_version.rb",
+            'get', 'chef'
+          ]
+        )
+        standardOutput = os
+      }
+    }
   }
-  ext.chefVersion = os.toString()
-}
-
-task('bundleDoctor', type: CrossPlatformExec) {
-  group 'Test'
-  commandLine(
-    [
-      'bundle', 'doctor'
-    ] +
-    bundleLogLevelArgs
-  )
+  outputs.file chefVersion
 }
 
 task('pipenvCheck', type: Exec) {
@@ -415,7 +437,7 @@ ext.with {
   sshKeySize = 4096
 
   kitchenEnvironment = [
-    'CHEF_VERSION': chefVersion,
+    'CHEF_VERSION': "${ -> chefVersion.text}",
     'AWS_ACCESS_KEY_ID': awsAccessKey,
     'AWS_SECRET_ACCESS_KEY': awsSecretKey,
     'KITCHEN_SSH_KEY': kitchenSSHPrivateKey.absolutePath,
@@ -688,7 +710,7 @@ task('parseTerraformOutput-common') {
 
 packer {
   customVariables = [
-    'chef_version': chefVersion,
+    'chef_version': "${ -> chefVersion.text}",
     'chef_dir': chefDir,
     'berks_vendor_dir': berksVendorDir,
     'videocapture_dir': videocaptureDir,
@@ -711,11 +733,11 @@ packer {
   template 'src/packer/instances/JenkinsSlaves.json'
 }
 
-tasks['build-kernel-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'createVideocaptureDir', 'createManifestOutputDir'
-tasks['build-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'createManifestOutputDir'
+tasks['build-kernel-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'getChefVersion', 'createVideocaptureDir', 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'getChefVersion', 'createManifestOutputDir'
 tasks['build-UbuntuServer-16.04.4+amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer-16.04.4+amd64-vbox'
-tasks['build-UbuntuServer-16.04.4+amd64-amazon'].dependsOn 'createManifestOutputDir'
-tasks['build-UbuntuServer-16.04.4+amd64'].dependsOn 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64-amazon'].dependsOn 'getChefVersion', 'createManifestOutputDir'
+tasks['build-UbuntuServer-16.04.4+amd64'].dependsOn 'getChefVersion', 'createManifestOutputDir'
 
 task('clean-base') {
   group 'Build'
@@ -795,7 +817,7 @@ task('berksVendor') {
 
 task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'berksUpdate'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'berksUpdate'
   mustRunAfter 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -818,7 +840,7 @@ task('kitchenTest-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -841,7 +863,7 @@ task('kitchenConverge-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenLogin-BuildToolset') {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-BuildToolset'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -865,7 +887,7 @@ task('kitchenLogin-BuildToolset') {
 
 task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'kitchenConverge-BuildToolset'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'kitchenConverge-BuildToolset'
   mustRunAfter 'berksUpdate', 'build-base', 'build-base-amazon'
   workingDir chefDir
   doFirst {
@@ -888,7 +910,7 @@ task('kitchenVerify-BuildToolset', type: CrossPlatformExec) {
 
 task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -909,7 +931,7 @@ task('kitchenDestroy-BuildToolset', type: CrossPlatformExec) {
 }
 
 tasks['build-JenkinsSlaves'].with {
-  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'berksVendor'
+  dependsOn 'getChefVersion', 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'berksVendor'
   mustRunAfter 'build-base', 'build-base-amazon', 'kitchenTest-BuildToolset', 'kitchenConverge-BuildToolset'
 }
 
@@ -1027,7 +1049,7 @@ task('generateRuntimeDataBag') {
 
 task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
@@ -1049,7 +1071,7 @@ task('kitchenTest-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksUpdate'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
@@ -1071,7 +1093,7 @@ task('kitchenTest-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common', 'generateRuntimeDataBag'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common', 'generateRuntimeDataBag'
   mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-vbox'
   workingDir chefDir
   doFirst {
@@ -1093,7 +1115,7 @@ task('kitchenConverge-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag'
+  dependsOn 'getChefVersion', 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag'
   mustRunAfter 'berksUpdate', 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64'
   workingDir chefDir
   doFirst {
@@ -1115,7 +1137,7 @@ task('kitchenConverge-JenkinsMaster-amazon', type: CrossPlatformExec) {
 
 task('kitchenLogin-JenkinsMaster-vbox') {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-JenkinsMaster-vbox'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -1139,7 +1161,7 @@ task('kitchenLogin-JenkinsMaster-vbox') {
 
 task('kitchenLogin-JenkinsMaster-amazon') {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   mustRunAfter 'kitchenConverge-JenkinsMaster-amazon'
   doLast {
     CommandLine cmdLine = new CommandLine(consoleExecutable).addArguments((
@@ -1163,7 +1185,7 @@ task('kitchenLogin-JenkinsMaster-amazon') {
 
 task('kitchenDestroy-JenkinsMaster-vbox', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1185,7 +1207,7 @@ task('kitchenDestroy-JenkinsMaster-vbox', type: CrossPlatformExec) {
 
 task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   workingDir chefDir
   doFirst {
     environment << kitchenEnvironment
@@ -1206,7 +1228,7 @@ task('kitchenDestroy-JenkinsMaster-amazon', type: CrossPlatformExec) {
 }
 
 tasks['build-JenkinsMaster'].with {
-  dependsOn 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
+  dependsOn 'getChefVersion', 'createManifestOutputDir', 'terraformApply-common', 'parseTerraformOutput-common', 'generateRuntimeDataBag', 'berksVendor'
   mustRunAfter 'build-UbuntuServer-16.04.4+amd64-amazon', 'build-UbuntuServer-16.04.4+amd64', 'kitchenTest-JenkinsMaster-vbox', 'kitchenConverge-JenkinsMaster-vbox', 'kitchenTest-JenkinsMaster-amazon', 'kitchenConverge-JenkinsMaster-amazon'
 }
 
@@ -1296,7 +1318,7 @@ task('codenarc', type: CodeNarc) {
 
 task('kitchenDiagnose', type: CrossPlatformExec) {
   group 'Test'
-  dependsOn 'parseTerraformOutput-common'
+  dependsOn 'getChefVersion', 'parseTerraformOutput-common'
   outputs.upToDateWhen { false }
   workingDir chefDir
   doFirst {
@@ -1388,7 +1410,7 @@ task('cookstyle', type: CrossPlatformExec) {
 
 task('check-noSideEffects') {
   group 'Test'
-  dependsOn 'codenarc', 'bundleDoctor', 'pipenvCheck', 'berksVerify', 'validate', 'rubocop', 'foodcritic', 'cookstyle', 'terraformValidate-common', 'terraformValidate-instances'
+  dependsOn 'codenarc', 'pipenvCheck', 'berksVerify', 'validate', 'rubocop', 'foodcritic', 'cookstyle', 'terraformValidate-common', 'terraformValidate-instances'
 }
 
 /* CAVEAT:
