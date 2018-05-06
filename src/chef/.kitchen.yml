@@ -52,6 +52,7 @@ provisioner:
   name: chef_solo
   product_name: chef
   product_version: "<%= ENV['CHEF_VERSION'] %>"
+  install_strategy: always
   data_bags_path: data_bags
   encrypted_data_bag_secret_key_path: <%= ENV['ENCRYPTED_DATA_BAG_SECRET'] %>
   environments_path: environments
