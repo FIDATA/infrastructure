@@ -33,3 +33,5 @@ umount /mnt;
 rm -f /tmp/VBoxGuestAdditions*.iso /tmp/VBoxGuestAdditions*.iso.?;
 
 apt-get -y purge build-essential linux-headers-generic linux-headers-$(uname -r)
+
+adduser $SUDO_USER vboxsf
