@@ -387,7 +387,7 @@ afterEvaluate {
       if (t.name != 'updateLock' && t.name != 'saveLock') {
         t.mustRunAfter 'updateLock', 'saveLock'
       }
-      if (t.name != 'dependencyUpdates' && t.name != 'updateLock' && t.name != 'saveLock') {
+      if (t.name != 'updateLock' && t.name != 'saveLock' && t.name != 'dependencyUpdates') {
         t.mustRunAfter 'buildToolsUpdate'
       }
     }
