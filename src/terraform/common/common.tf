@@ -375,6 +375,20 @@ output "WinRM_private_security_group_id" {
   value = "${aws_security_group.WinRM_private.id}"
 }
 
+resource "aws_security_group" "JNLP" {
+  name = "JNLP"
+  vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    from_port = 49817
+    to_port = 49817
+    protocol = "tcp"
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+}
+output "JNLP_security_group_id" {
+  value = "${aws_security_group.JNLP.id}"
+}
+
 # Key Pairs
 
 data "external" "fidata_main_ssh_key" {
