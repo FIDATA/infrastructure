@@ -261,6 +261,20 @@ output "SSH_security_group_id" {
   value = "${aws_security_group.SSH.id}"
 }
 
+resource "aws_security_group" "SSH_private" {
+  name = "SSH_private"
+  vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+}
+output "SSH_private_security_group_id" {
+  value = "${aws_security_group.SSH_private.id}"
+}
+
 resource "aws_security_group" "HTTP_S" {
   name = "HTTP(S)"
   vpc_id = "${aws_vpc.fidata.id}"
@@ -339,6 +353,26 @@ resource "aws_security_group" "WinRM" {
 }
 output "WinRM_security_group_id" {
   value = "${aws_security_group.WinRM.id}"
+}
+
+resource "aws_security_group" "WinRM_private" {
+  name = "WinRM_private"
+  vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    from_port = 5985
+    to_port = 5985
+    protocol = "tcp"
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+  ingress {
+    from_port = 5986
+    to_port = 5986
+    protocol = "tcp"
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+}
+output "WinRM_private_security_group_id" {
+  value = "${aws_security_group.WinRM_private.id}"
 }
 
 # Key Pairs

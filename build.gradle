@@ -459,7 +459,7 @@ ext.with {
   jenkinsSlaves = [
     'UbuntuServer-16.04.4+amd64': [
       'version': '0.3.2',
-      'security_groups': ['default', 'ICMP_private', 'SSH'] as Set<String>,
+      'security_groups': ['default', 'ICMP_private', 'SSH_private'] as Set<String>,
       'type_data': [
         'type': 'unix',
         'root_сommand_prefix': ''
