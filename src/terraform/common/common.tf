@@ -256,12 +256,6 @@ resource "aws_security_group" "SSH" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 output "SSH_security_group_id" {
   value = "${aws_security_group.SSH.id}"
@@ -288,12 +282,6 @@ resource "aws_security_group" "HTTP_S" {
     protocol = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 output "HTTP_S_security_group_id" {
   value = "${aws_security_group.HTTP_S.id}"
@@ -314,12 +302,6 @@ resource "aws_security_group" "RDP" {
     protocol = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 output "RDP_security_group_id" {
   value = "${aws_security_group.RDP.id}"
@@ -332,12 +314,6 @@ resource "aws_security_group" "SMB" {
     from_port = 445
     to_port = 445
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -358,12 +334,6 @@ resource "aws_security_group" "WinRM" {
     from_port = 5986
     to_port = 5986
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
