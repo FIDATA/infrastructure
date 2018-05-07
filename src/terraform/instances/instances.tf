@@ -72,6 +72,22 @@ data "aws_subnet" "fidata" {
   }
 }
 
+data "aws_security_group" "default" {
+  vpc_id = "${data.aws_vpc.fidata.id}"
+  filter = {
+    name = "group-name"
+    values = ["default"]
+  }
+}
+
+data "aws_security_group" "ICMP" {
+  vpc_id = "${data.aws_vpc.fidata.id}"
+  filter = {
+    name = "group-name"
+    values = ["ICMP"]
+  }
+}
+
 data "aws_security_group" "SSH" {
   vpc_id = "${data.aws_vpc.fidata.id}"
   filter = {
@@ -113,6 +129,8 @@ resource "aws_instance" "jenkins_master" {
     volume_size = 8
   }
   vpc_security_group_ids = [
+    "${data.aws_security_group.default.id}",
+    "${data.aws_security_group.ICMP.id}",
     "${data.aws_security_group.HTTP_S.id}"
   ]
   key_name = "fidata-main"

@@ -74,6 +74,8 @@ suites:
             volume_type: gp2
             volume_size: 32
       security_group_ids:
+        - <%= ENV['AWS_DEFAULT_SG_ID'] %>
+        - <%= ENV['AWS_ICMP_SG_ID'] %>
         - <%= ENV['AWS_SSH_SG_ID'] %>
     provisioner:
       solo_rb:
@@ -114,6 +116,8 @@ suites:
             volume_type: gp2
             volume_size: 8
       security_group_ids:
+        - <%= ENV['AWS_DEFAULT_SG_ID'] %>
+        - <%= ENV['AWS_ICMP_SG_ID'] %>
         - <%= ENV['AWS_SSH_SG_ID'] %>
         - <%= ENV['AWS_HTTP_S_SG_ID'] %>
     provisioner:

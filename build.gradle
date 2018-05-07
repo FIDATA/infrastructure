@@ -454,19 +454,12 @@ ext.with {
   ]
   terraformVariablesForArgs = terraformVariables.collectMany { key, value -> ['-var', "$key=$value"] }
 
-  awsSecurityGroups = [
-    'default': null,
-    'SSH': null,
-    'HTTP_S': null,
-    'RDP': null,
-    'SMB': null,
-    'WinRM': null,
-  ]
+  awsSecurityGroups = [:]
 
   jenkinsSlaves = [
     'UbuntuServer-16.04.4+amd64': [
       'version': '0.3.2',
-      'security_groups': ['SSH'] as Set<String>,
+      'security_groups': ['default', 'ICMP_private', 'SSH'] as Set<String>,
       'type_data': [
         'type': 'unix',
         'root_сommand_prefix': ''
@@ -696,9 +689,12 @@ task('parseTerraformOutput-common') {
     kitchenEnvironment << [
       'AWS_SUBNET_ID': terraformOutputs['fidata_subnet_id']['value'],
     ]
-    awsSecurityGroups << awsSecurityGroups.collectEntries { key, value ->
-      [(key): terraformOutputs["${key}_security_group_id"]['value']]
-    }
+    awsSecurityGroups << terraformOutputs.findResults({ key, value ->
+      def m = key =~ /^(.+)_security_group_id$/
+      if (m.matches()) {
+          return [m[0][1], value['value']]
+      }
+    }).flatten().toSpreadMap()
     for (securityGroup in awsSecurityGroups) {
       kitchenEnvironment["AWS_${securityGroup.key.toUpperCase()}_SG_ID"] = securityGroup.value
     }

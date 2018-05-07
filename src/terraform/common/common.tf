@@ -190,6 +190,12 @@ resource "aws_main_route_table_association" "a" {
 
 resource "aws_default_security_group" "default" {
   vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    protocol = "icmp"
+    from_port = 3
+    to_port = 4
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port = 0
     to_port = 0
@@ -199,6 +205,46 @@ resource "aws_default_security_group" "default" {
 }
 output "default_security_group_id" {
   value = "${aws_default_security_group.default.id}"
+}
+
+resource "aws_security_group" "ICMP" {
+  name = "ICMP"
+  vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    protocol = "icmp"
+    from_port = 8
+    to_port = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    protocol = "icmp"
+    from_port = 11
+    to_port = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+output "ICMP_security_group_id" {
+  value = "${aws_security_group.ICMP.id}"
+}
+
+resource "aws_security_group" "ICMP_private" {
+  name = "ICMP_private"
+  vpc_id = "${aws_vpc.fidata.id}"
+  ingress {
+    protocol = "icmp"
+    from_port = 8
+    to_port = 0
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+  ingress {
+    protocol = "icmp"
+    from_port = 11
+    to_port = 0
+    cidr_blocks = ["${aws_vpc.fidata.cidr_block}"]
+  }
+}
+output "ICMP_private_security_group_id" {
+  value = "${aws_security_group.ICMP_private.id}"
 }
 
 resource "aws_security_group" "SSH" {
