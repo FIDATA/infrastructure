@@ -1,10 +1,10 @@
 # Git
-.gitignore
-.gitkeep
-.gitattributes
+**/.gitignore
+**/.gitkeep
+**/.gitattributes
 
 # GFM Viewer
-.*.md.html
+**/.*.md.html
 
 # Chef
 .chef
