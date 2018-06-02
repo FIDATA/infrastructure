@@ -154,7 +154,7 @@ ext.with {
 
   gemfile = file('gems.rb')
   gemfileLock = file('gems.locked')
-  chefVersion = file("$buildDir/chef_version")
+  chefVersionFile = file("$buildDir/chef_version")
   libDir = file('src/lib')
   videocaptureDir = file("$buildDir/videocapture")
   vboxOutputDir = file("$buildDir/vbox")
@@ -399,7 +399,7 @@ task('getChefVersion') {
   inputs.file gemfile
   inputs.file gemfileLock
   doLast {
-    new FileOutputStream(chefVersion).withStream { os ->
+    new FileOutputStream(chefVersionFile).withStream { os ->
       exec {
         commandLine(
           [
@@ -420,7 +420,7 @@ task('getChefVersion') {
       }
     }
   }
-  outputs.file chefVersion
+  outputs.file chefVersionFile
 }
 
 task('pipenvCheck', type: Exec) {
@@ -437,7 +437,7 @@ ext.with {
   sshKeySize = 4096
 
   kitchenEnvironment = [
-    'CHEF_VERSION': "${ -> chefVersion.text}",
+    'CHEF_VERSION': "${ -> chefVersionFile.text}",
     'AWS_ACCESS_KEY_ID': awsAccessKey,
     'AWS_SECRET_ACCESS_KEY': awsSecretKey,
     'KITCHEN_SSH_KEY': kitchenSSHPrivateKey.absolutePath,
@@ -706,7 +706,7 @@ task('parseTerraformOutput-common') {
 
 packer {
   customVariables = [
-    'chef_version': "${ -> chefVersion.text}",
+    'chef_version': "${ -> chefVersionFile.text }",
     'chef_dir': chefDir,
     'berks_vendor_dir': berksVendorDir,
     'videocapture_dir': videocaptureDir,
