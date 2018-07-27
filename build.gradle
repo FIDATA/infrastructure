@@ -32,7 +32,6 @@ buildscript {
     classpath 'gradle.plugin.fidata.org:gradle-packer-plugin:2.4.0'
     classpath 'com.amazonaws:aws-java-sdk-ec2:1.11.323'
     classpath 'org.apache.commons:commons-exec:1.3'
-    classpath 'com.jcraft:jsch:0.1.54'
     configurations.classpath.exclude group: 'xerces', module: 'xercesImpl'
   }
 }
@@ -42,6 +41,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.17.0'
   id 'nebula.dependency-lock' version '5.0.4'
   id 'com.github.jlouns.cpe' version '0.5.0'
+  id 'org.fidata.keygen' version '1.0.0'
   id 'com.jfrog.artifactory' version '4.7.2'
   id 'codenarc'
   id 'cz.malohlava' version '1.0.3'
@@ -66,7 +66,6 @@ import java.util.regex.*
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import org.apache.commons.exec.*
-import com.jcraft.jsch.*
 import org.apache.commons.io.filefilter.DirectoryFileFilter
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
 import com.amazonaws.auth.AWSStaticCredentialsProvider
@@ -433,9 +432,6 @@ task('pipenvCheck', type: Exec) {
 }
 
 ext.with {
-  sshKeyType = KeyPair.RSA
-  sshKeySize = 4096
-
   kitchenEnvironment = [
     'CHEF_VERSION': "${ -> chefVersionFile.text}",
     'AWS_ACCESS_KEY_ID': awsAccessKey,
@@ -529,65 +525,28 @@ task('createManifestOutputDir') {
   }
 }
 
-class GenerateSSHKeyTask extends DefaultTask {
-  private final static JSch JSCH
-
-  private File privateKeyFile
-  private File publicKeyFile
-
-  @OutputFile
-  File getPrivateKeyFile() { privateKeyFile }
-  void setPrivateKeyFile(File privateKeyFile) {
-      this.privateKeyFile = privateKeyFile
-      this.publicKeyFile = project.file("${privateKeyFile}.pub")
-  }
-  @OutputFile
-  File getPublicKeyFile() { publicKeyFile }
-
-  int keyType
-  int keySize
-  String email
-
-  static {
-    JSCH = new JSch()
-  }
-
-  @TaskAction
-  void generate() {
-    if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
-      KeyPair kpair = KeyPair.genKeyPair(JSCH, keyType, keySize)
-      kpair.writePrivateKey(privateKeyFile.path)
-      kpair.writePublicKey(publicKeyFile.path, email)
-      kpair.dispose()
-    }
-  }
+keygen {
+  keyType = RSA
+  keySize = 4096
 }
 
 task('generateSSHKey-FIDATAMain', type: GenerateSSHKeyTask) {
   privateKeyFile = fidataMainSSHPrivateKey
-  keyType = sshKeyType
-  keySize = sshKeySize
   email = fidataMainEmail
 }
 
 task('generateSSHKey-FIDATAChef', type: GenerateSSHKeyTask) {
   privateKeyFile = fidataChefSSHPrivateKey
-  keyType = sshKeyType
-  keySize = sshKeySize
   email = fidataChefEmail
 }
 
 task('generateSSHKey-FIDATAJenkins', type: GenerateSSHKeyTask) {
   privateKeyFile = fidataJenkinsSSHPrivateKey
-  keyType = sshKeyType
-  keySize = sshKeySize
   email = fidataJenkinsEmail
 }
 
 task('generateSSHKey-Kitchen', type: GenerateSSHKeyTask) {
   privateKeyFile = kitchenSSHPrivateKey
-  keyType = sshKeyType
-  keySize = sshKeySize
   email = fidataKitchenEmail
 }
 
