@@ -222,6 +222,20 @@ resource "cloudflare_record" "yandex_mail_dkim" {
   value = "v=DKIM1; k=rsa; t=s; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtZQIP0/9gZXNCT/UCY1HA2cBn/42wZfEVc2Z0gebYAnj6KiUf80OitmNkn72WEyDJmppEa/X6sNpRonSOJGer4nz92sjvaMIaI2JXCiw5/aefAVA1V54UMmvpQMtcfe70pcRpZW4ZHwVJnb+HhNzjZZtCThIsQyu/3/bKEUeYJwIDAQAB"
 }
 
+resource "cloudflare_record" "spf_txt" {
+  domain = "fidata.org"
+  name = "@"
+  type = "TXT"
+  value = "v=spf1 redirect=_spf.yandex.net"
+}
+
+resource "cloudflare_record" "spf" {
+  domain = "fidata.org"
+  name = "@"
+  type = "SPF"
+  value = "v=spf1 redirect=_spf.yandex.net"
+}
+
 resource "cloudflare_record" "website_ru" {
   domain = "fidata.ru"
   name = "fidata.ru"
