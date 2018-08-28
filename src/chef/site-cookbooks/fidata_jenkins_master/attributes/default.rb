@@ -59,6 +59,7 @@ default['jenkins']['master']['plugins'] = {
   # Primary functions - jobs as code
   'job-dsl': '1.68',
   'managed-scripts': '1.4',
+  'lockable-resources': '2.3',
   # Primary functions - workflows
   'workflow-aggregator': '2.5',
   'delivery-pipeline-plugin': '1.1.1',
