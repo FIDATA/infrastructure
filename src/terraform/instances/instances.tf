@@ -236,6 +236,13 @@ resource "cloudflare_record" "spf" {
   value = "v=spf1 redirect=_spf.yandex.net"
 }
 
+resource "cloudflare_record" "github_verify_domain" {
+  domain = "fidata.org"
+  name = "_github-challenge-FIDATA.fidata.org."
+  type = "TXT"
+  value = "34336fee0d"
+}
+
 resource "cloudflare_record" "website_ru" {
   domain = "fidata.ru"
   name = "fidata.ru"
