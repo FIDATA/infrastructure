@@ -191,6 +191,27 @@ resource "cloudflare_record" "artifactory" {
   proxied = true
 }
 
+resource "cloudflare_record" "CAA_letsencrypt" {
+  domain = "fidata.org"
+  name = "fidata.org"
+  type = "CAA"
+  value = "0 issue \"letsencrypt.org\""
+}
+
+resource "cloudflare_record" "CAA_mailto_1" {
+  domain = "fidata.org"
+  name = "fidata.org"
+  type = "CAA"
+  value = "0 iodef \"mailto:grv87@yandex.ru\""
+}
+
+resource "cloudflare_record" "CAA_mailto_2" {
+  domain = "fidata.org"
+  name = "fidata.org"
+  type = "CAA"
+  value = "0 iodef \"mailto:basil.peace@gmail.com\""
+}
+
 resource "cloudflare_record" "google_verification" {
   domain = "fidata.org"
   name = "fidata.org"
