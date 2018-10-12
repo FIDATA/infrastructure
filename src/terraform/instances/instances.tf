@@ -156,7 +156,7 @@ resource "cloudflare_record" "website" {
   name = "fidata.org"
   type = "CNAME"
   value = "fidata.github.io."
-  proxied = true
+  proxied = false
 }
 
 resource "cloudflare_record" "www" {
