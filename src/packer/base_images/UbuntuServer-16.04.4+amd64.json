@@ -22,6 +22,7 @@
 	"variables": {
 		"base_name": "UbuntuServer-16.04.4",
 		"version": "0.1.0",
+		"build_number": "{{ timestamp }}",
 		"architecture": "amd64",
 		"aws_region": "eu-west-1",
 		"source_kernel_version": "0.1.0",
@@ -38,8 +39,7 @@
 		"vagrant_output_dir": ".",
 		"manifest_output_dir": ".",
 		"aws_access_key": "",
-		"aws_secret_key": "",
-		"vagrant_cloud_token": ""
+		"aws_secret_key": ""
 	},
 	"builders": [
 		{
@@ -189,16 +189,8 @@
 				"output": "{{ user `vagrant_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}_{{ user `architecture` }}_{{ build_name }}.box"
 			},
 			{
-				"only": [ "vbox" ],
-				"type": "vagrant-cloud",
-				"keep_input_artifact": false,
-				"access_token": "{{ user `vagrant_cloud_token` }}",
-				"box_tag": "fidata/{{ user `base_name` }}_{{ user `architecture` }}",
-				"version": "{{ user `version` }}"
-			},
-			{
 				"type": "manifest",
-				"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}-{{ timestamp }}.json"
+				"output": "{{ user `manifest_output_dir` }}/{{ user `base_name` }}-{{ user `version` }}+{{ user `architecture` }}+{{ build_name }}-{{ user `build_number` }}.json"
 			}
 		]
 	]

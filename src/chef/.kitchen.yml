@@ -39,7 +39,7 @@ platforms:
       name: vagrant
       cachier: machine
       box: fidata/UbuntuServer-16.04.4_amd64
-      box_url: fidata/UbuntuServer-16.04.4_amd64
+      box_url: https://fidata.jfrog.io/fidata/api/vagrant/vagrant-local/UbuntuServer-16.04.4_amd64
       box_version: "0.1.0"
       box_check_update: true
       username: ubuntu

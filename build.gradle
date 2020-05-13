@@ -32,6 +32,7 @@ buildscript {
     classpath 'gradle.plugin.fidata.org:gradle-packer-plugin:2.4.0'
     classpath 'com.amazonaws:aws-java-sdk-ec2:1.11.323'
     classpath 'org.apache.commons:commons-exec:1.3'
+    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.7.3'
     configurations.classpath.exclude group: 'xerces', module: 'xercesImpl'
   }
 }
@@ -42,24 +43,11 @@ plugins {
   id 'nebula.dependency-lock' version '5.0.4'
   id 'com.github.jlouns.cpe' version '0.5.0'
   id 'org.fidata.keygen' version '1.0.0'
-  id 'com.jfrog.artifactory' version '4.7.2'
   id 'codenarc'
   id 'cz.malohlava' version '1.0.3'
 }
 
 apply plugin: 'org.fidata.packer'
-
-artifactory {
-  contextUrl = 'http://fidata.jfrog.io/fidata'
-  resolve {
-    repository {
-      repoKey = 'libs-snapshot'
-      username = artifactoryUser
-      password = artifactoryPassword
-      maven = true
-    }
-  }
-}
 
 import org.gradle.internal.os.OperatingSystem
 import java.util.regex.*
@@ -186,6 +174,8 @@ ext.with {
 
   terraformDirs = Arrays.asList(terraformDir.listFiles((FileFilter)DirectoryFileFilter.DIRECTORY))
 }
+
+apply from: 'gradle/artifactory.gradle'
 
 visteg {
   enabled        = (logging.level ?: gradle.startParameter.logLevel) <= LogLevel.INFO
@@ -665,6 +655,7 @@ task('parseTerraformOutput-common') {
 
 packer {
   customVariables = [
+    'build_number': "${ -> project.ext.buildNumber }",
     'chef_version': "${ -> chefVersionFile.text }",
     'chef_dir': chefDir,
     'berks_vendor_dir': berksVendorDir,
@@ -688,11 +679,37 @@ packer {
   template 'src/packer/instances/JenkinsSlaves.json'
 }
 
-tasks['build-kernel-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'getChefVersion', 'createVideocaptureDir', 'createManifestOutputDir'
-tasks['build-UbuntuServer-16.04.4+amd64-vbox'].dependsOn 'getChefVersion', 'createManifestOutputDir'
-tasks['build-UbuntuServer-16.04.4+amd64-vbox'].mustRunAfter 'build-kernel-UbuntuServer-16.04.4+amd64-vbox'
-tasks['build-UbuntuServer-16.04.4+amd64-amazon'].dependsOn 'getChefVersion', 'createManifestOutputDir'
-tasks['build-UbuntuServer-16.04.4+amd64'].dependsOn 'getChefVersion', 'createManifestOutputDir'
+tasks['build-kernel-UbuntuServer-16.04.4+amd64-vbox'].with {
+  dependsOn 'getChefVersion', 'createVideocaptureDir', 'createManifestOutputDir'
+  finalizedBy 'publishBuildInfo'
+}  
+tasks['build-UbuntuServer-16.04.4+amd64-vbox'].with {
+  dependsOn 'getChefVersion', 'createManifestOutputDir'
+  mustRunAfter 'build-kernel-UbuntuServer-16.04.4+amd64-vbox'
+  finalizedBy 'publishBuildInfo'
+}
+tasks['build-UbuntuServer-16.04.4+amd64-amazon'].with {
+  dependsOn 'getChefVersion', 'createManifestOutputDir'
+  finalizedBy 'publishBuildInfo'
+}
+tasks['build-UbuntuServer-16.04.4+amd64'].with {
+  dependsOn 'getChefVersion', 'createManifestOutputDir'
+  finalizedBy 'publishBuildInfo'
+}
+
+// task('publishUbuntuServer-16.04.4+amd64-vbox').
+/*
+    .withProperty('box_name', '')
+    .withProperty('box_provider', '')
+    .withProperty('box_version', '')
+*/
+
+task('publishPackerManifest', type: ArtifactoryGenericPublish) {
+  /*file =
+  repository = 'packer-manifests'
+  module =*/
+  finalizedBy 'publishBuildInfo'
+}
 
 task('clean-base') {
   group 'Build'

@@ -297,7 +297,7 @@ jenkins_secret_file_credentials 'gpg' do
   id 'GPG'
   description 'FIDATA Jenkins GPG Key'
   filename "#{node['fidata']['jenkins']['email']}.asc"
-  content node['fidata']['jenkins']['gpg_key']['private_key']
+  content node['fidata']['jenkins']['gpg_key']['private_key'].chomp
   action :create
 end
 

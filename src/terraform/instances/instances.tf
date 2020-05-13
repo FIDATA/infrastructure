@@ -49,12 +49,6 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-provider "cloudflare" {
-  version = "~> 0.1"
-  email = "${var.cloudflare_email}"
-  token = "${var.cloudflare_token}"
-}
-
 # VPC and security groups
 
 data "aws_vpc" "fidata" {
@@ -151,22 +145,6 @@ resource "aws_eip" "jenkins_master" {
 
 # DNS
 
-resource "cloudflare_record" "website" {
-  domain = "fidata.org"
-  name = "fidata.org"
-  type = "CNAME"
-  value = "fidata.github.io."
-  proxied = false
-}
-
-resource "cloudflare_record" "www" {
-  domain = "fidata.org"
-  name = "www"
-  type = "CNAME"
-  value = "fidata.github.io."
-  proxied = true
-}
-
 resource "cloudflare_record" "ajaxhttpheaders" {
   domain = "fidata.org"
   name = "ajaxhttpheaders"
@@ -236,6 +214,13 @@ resource "cloudflare_record" "mail" {
   priority = 10
 }
 
+resource "cloudflare_record" "mail_subdomain" {
+  domain = "fidata.org"
+  name = "mail"
+  type = "CNAME"
+  value = "domain.mail.yandex.net"
+}
+
 resource "cloudflare_record" "yandex_mail_dkim" {
   domain = "fidata.org"
   name = "mail._domainkey"
@@ -262,20 +247,4 @@ resource "cloudflare_record" "github_verify_domain" {
   name = "_github-challenge-FIDATA.fidata.org."
   type = "TXT"
   value = "34336fee0d"
-}
-
-resource "cloudflare_record" "website_ru" {
-  domain = "fidata.ru"
-  name = "fidata.ru"
-  type = "CNAME"
-  value = "fidata.org."
-  proxied = true
-}
-
-resource "cloudflare_record" "www_ru" {
-  domain = "fidata.ru"
-  name = "www"
-  type = "CNAME"
-  value = "fidata.org."
-  proxied = true
 }
