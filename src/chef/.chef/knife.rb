@@ -41,4 +41,4 @@ cookbook_path [
 data_bags_path   "#{knife[:chef_repo_path]}/data_bags"
 environment_path "#{knife[:chef_repo_path]}/environments"
 
-data_bag_encrypt_version 2
+data_bag_encrypt_version 3
