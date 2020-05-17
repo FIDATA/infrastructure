@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 /* CodeNarc rules
-   Copyright © 2017-2018  Basil Peace
+   Copyright Â© 2017-2018  Basil Peace
 
    This file is part of FIDATA Infrastructure.
 
